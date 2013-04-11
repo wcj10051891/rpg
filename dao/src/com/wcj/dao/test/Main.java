@@ -18,7 +18,7 @@ public class Main
         ctx.refresh();
 
         ActiveDao dao = ctx.getBean(DaoFactory.class).get(ActiveDao.class);
-        AppLogger.debug("all:" + dao.getAll());
+        AppLogger.debug("all:" + dao.getCount());
         ctx.close();
     }
 }
