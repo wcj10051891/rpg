@@ -15,10 +15,16 @@ public interface ActiveDao
     Map<String, Object> get(@Arg("p")Active active);
     
     @Sql("select count(*) from active")
-    int getCount();
+    Integer getCount();
     
     @Sql("select * from active")
     List<Active> getAll();
+
+    @Sql("select id from active")
+    public List<Integer> getIds();
+    
+    @Sql("select description from active where 1=0")
+    public List<String> getDescs();
 
     @Sql("select * from active where id in(#ids)")
     List<Map<String, Object>> getByIds(@Arg("ids")int[] ids);

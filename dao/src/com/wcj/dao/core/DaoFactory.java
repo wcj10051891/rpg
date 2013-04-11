@@ -9,6 +9,7 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -49,26 +51,35 @@ public class DaoFactory
 
     private static String dateFormat = "yyyy-MM-dd hh:mm:ss";
 
-    private static final Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<Class<?>, Object>();
-
     private static final String select = "select";
     private static final String insert = "insert";
     private static final String delete = "delete";
     private static final String update = "update";
     
-    private static final Map<Class<?>, Class<?>> primitiveConvert = new HashMap<Class<?>, Class<?>>();
+    private static final Map<Class<?>, Class<?>> buildInTypes = new HashMap<Class<?>, Class<?>>();
     static
     {
-        primitiveConvert.put(byte.class, Byte.class);
-        primitiveConvert.put(boolean.class, Boolean.class);
-        primitiveConvert.put(char.class, Character.class);
-        primitiveConvert.put(short.class, Short.class);
-        primitiveConvert.put(int.class, Integer.class);
-        primitiveConvert.put(long.class, Long.class);
-        primitiveConvert.put(float.class, Float.class);
-        primitiveConvert.put(double.class, Double.class);
+        buildInTypes.put(byte.class, Byte.class);
+        buildInTypes.put(boolean.class, Boolean.class);
+        buildInTypes.put(char.class, Character.class);
+        buildInTypes.put(short.class, Short.class);
+        buildInTypes.put(int.class, Integer.class);
+        buildInTypes.put(long.class, Long.class);
+        buildInTypes.put(float.class, Float.class);
+        buildInTypes.put(double.class, Double.class);
+        buildInTypes.put(Byte.class, Byte.class);
+        buildInTypes.put(Boolean.class, Boolean.class);
+        buildInTypes.put(Character.class, Character.class);
+        buildInTypes.put(Short.class, Short.class);
+        buildInTypes.put(Integer.class, Integer.class);
+        buildInTypes.put(Long.class, Long.class);
+        buildInTypes.put(Float.class, Float.class);
+        buildInTypes.put(Double.class, Double.class);
+        buildInTypes.put(String.class, String.class);
     }
 
+    private Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<Class<?>, Object>();
+    
     @Autowired
     public JdbcTemplate jdbc;
 
@@ -82,7 +93,13 @@ public class DaoFactory
                 throw new DaoException("dao method must annotationed by Sql.");
 
             String sql = method.getAnnotation(Sql.class).value().trim();
-            checkSql(sql);
+
+            if (!(sql.startsWith(select) || sql.startsWith(insert) || sql.startsWith(delete) || sql.startsWith(update)))
+                throw new DaoException("unsupport sql operation.");
+            
+            if(sql.startsWith(select) && method.getReturnType() == void.class)
+        	return null;
+            
             Annotation[][] parameterAnnotations = method.getParameterAnnotations();
             Map<String, Object> param = null;
             for (int i = 0; i < parameterAnnotations.length; i++)
@@ -117,14 +134,12 @@ public class DaoFactory
                 if (returnType instanceof Class<?>)
                 {
                     Class<?> c = (Class<?>) returnType;
-                    if (c == Void.class || c == void.class)
-                        return null;
+                    if(buildInTypes.containsKey(c))
+                        return jdbc.queryForObject(sql, buildInTypes.get(c));
+                    else if (Map.class.isAssignableFrom(c))
+                        return jdbc.queryForMap(sql);
                     else if (Collection.class.isAssignableFrom(c))
                         return jdbc.queryForList(sql);
-                    else if (c.isPrimitive() && primitiveConvert.containsKey(c))
-                        return jdbc.queryForObject(sql, primitiveConvert.get(c));
-                    else if (c == Map.class)
-                        return jdbc.queryForMap(sql);
                     else
                     {
                         List result = jdbc.query(sql, new BeanPropertyRowMapper(c));
@@ -153,17 +168,29 @@ public class DaoFactory
                                         return jdbc.queryForList(sql);
                                 }
                             }
-                            else if ((Class<?>) t == Map.class)
-                            {
-                                return jdbc.queryForList(sql);
-                            }
                             else
                             {
-                                return jdbc.query(sql, new BeanPropertyRowMapper((Class<?>) t));
+                        	Class<?> tt = (Class<?>) t;
+                        	if(tt == Map.class)
+                                    return jdbc.queryForList(sql);
+                        	else if(buildInTypes.containsKey(tt))
+                        	{
+                        	    List rows = jdbc.query(sql, new RowMapper(){
+					@Override
+					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+					    return rs.getObject(1);
+					}
+                        	    });
+                        	    return rows;
+                        	}
+                                else
+                                {
+                                    return jdbc.query(sql, new BeanPropertyRowMapper(tt));
+                                }
                             }
                         }
                     }
-                    else if(Map.class.isAssignableFrom(rawType))
+                    else if(rawType == Map.class)
                     {
                         return jdbc.queryForMap(sql);
                     }
@@ -180,14 +207,14 @@ public class DaoFactory
             {
                 Type returnType = method.getReturnType();
                 Class<?> c = (Class<?>) returnType;
-                if (c == Void.class || c == void.class)
+                if (c == void.class)
                 {
                     jdbc.update(sql);
                 }
                 else
                 {
-                    if (c.isPrimitive() && primitiveConvert.containsKey(c))
-                        c = primitiveConvert.get(c);
+                    if (c.isPrimitive() && buildInTypes.containsKey(c))
+                        c = buildInTypes.get(c);
 
                     if (Number.class.isAssignableFrom(c))
                     {
@@ -219,12 +246,6 @@ public class DaoFactory
             return null;
         }
     };
-
-    private void checkSql(String sql)
-    {
-        if (!(sql.startsWith(select) || sql.startsWith(insert) || sql.startsWith(delete) || sql.startsWith(update)))
-            throw new DaoException("unsupport sql operation.");
-    }
 
     private static ThreadLocal<Set<Object>> local = new ThreadLocal<Set<Object>>();
 

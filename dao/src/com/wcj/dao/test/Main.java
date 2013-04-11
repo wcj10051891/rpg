@@ -1,5 +1,7 @@
 package com.wcj.dao.test;
 
+import java.util.List;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.wcj.dao.core.AppLogger;
@@ -11,14 +13,15 @@ public class Main
     /**
      * @param args
      */
-    public static void main(String[] args) throws Exception
+    public static void main(String[] args)
     {
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
         ctx.scan("com.wcj");
         ctx.refresh();
 
         ActiveDao dao = ctx.getBean(DaoFactory.class).get(ActiveDao.class);
-        AppLogger.debug("all:" + dao.getCount());
+        List<Active> all = dao.getAll();
+        AppLogger.debug("all:" + all);
         ctx.close();
     }
 }
