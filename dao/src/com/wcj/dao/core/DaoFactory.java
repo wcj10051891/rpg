@@ -10,7 +10,6 @@ import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -19,7 +18,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -27,14 +25,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.dbutils.handlers.ColumnListHandler;
+import org.apache.commons.dbutils.handlers.MapHandler;
+import org.apache.commons.dbutils.handlers.MapListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.wcj.dao.annotation.Arg;
 import com.wcj.dao.annotation.Dao;
@@ -42,9 +42,9 @@ import com.wcj.dao.annotation.Sql;
 import com.wcj.util.BeanUtils;
 import com.wcj.util.StringUtils;
 
-@Component
 public class DaoFactory
 {
+    private static Logger logger = LoggerFactory.getLogger(Context.class);
     private static final String comma = ",";
     private static final String argPrefix = "#";
     private static final String quote = "'";
@@ -55,6 +55,13 @@ public class DaoFactory
     private static final String insert = "insert";
     private static final String delete = "delete";
     private static final String update = "update";
+
+    private static Map<Class<?>, BeanHandler<?>> beanHandlers = new ConcurrentHashMap<>();
+    private static MapHandler mapHandler = new MapHandler();
+    private static ColumnListHandler<?> columnListHandler = new ColumnListHandler<>();
+    private static MapListHandler mapListHandler = new MapListHandler();
+    private static ScalarHandler<?> scalarHandler = new ScalarHandler<>();
+    private static Map<Class<?>, BeanListHandler<?>> beanListHandlers = new ConcurrentHashMap<>();
     
     private static final Map<Class<?>, Class<?>> buildInTypes = new HashMap<Class<?>, Class<?>>();
     static
@@ -79,13 +86,9 @@ public class DaoFactory
     }
 
     private Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<Class<?>, Object>();
-    
-    @Autowired
-    public JdbcTemplate jdbc;
 
     private InvocationHandler handler = new InvocationHandler()
     {
-        @SuppressWarnings({ "rawtypes", "unchecked" })
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
         {
@@ -126,27 +129,27 @@ public class DaoFactory
             }
             local.remove();
             
-            AppLogger.debug(sql);
+            logger.debug(sql);
             
+            QueryRunner jdbc = Context.instance().jdbc;
             if (sql.startsWith(select))
             {
                 Type returnType = method.getGenericReturnType();
                 if (returnType instanceof Class<?>)
                 {
                     Class<?> c = (Class<?>) returnType;
-                    if(buildInTypes.containsKey(c))
-                        return jdbc.queryForObject(sql, buildInTypes.get(c));
-                    else if (Map.class.isAssignableFrom(c))
-                        return jdbc.queryForMap(sql);
-                    else if (Collection.class.isAssignableFrom(c))
-                        return jdbc.queryForList(sql);
-                    else
-                    {
-                        List result = jdbc.query(sql, new BeanPropertyRowMapper(c));
-                        if(result.isEmpty())
-                            return null;
-                        return result.get(0);
+                    //primitive
+                    if(buildInTypes.containsKey(c)){
+                	return jdbc.query(sql, scalarHandler);
                     }
+                    else if (Map.class.isAssignableFrom(c))
+                	//map<String, Object>
+                        return jdbc.query(sql, mapHandler);
+                    else if (Collection.class.isAssignableFrom(c))
+                	//List<Map<String, Object>
+                        return jdbc.query(sql, mapListHandler);
+                    else//Bean
+                        return jdbc.query(sql, getBeanHandler(c));
                 }
                 else if (returnType instanceof ParameterizedType)
                 {
@@ -165,41 +168,32 @@ public class DaoFactory
                                 {
                                     Type[] ttt = tt.getActualTypeArguments();
                                     if ((Class<?>) ttt[0] == String.class && (Class<?>) ttt[1] == Object.class)
-                                        return jdbc.queryForList(sql);
+                                        return jdbc.query(sql, mapListHandler);
                                 }
                             }
                             else
                             {
                         	Class<?> tt = (Class<?>) t;
                         	if(tt == Map.class)
-                                    return jdbc.queryForList(sql);
+                        	    //List<Map<String, Object>
+                                    return jdbc.query(sql, mapListHandler);
                         	else if(buildInTypes.containsKey(tt))
-                        	{
-                        	    List rows = jdbc.query(sql, new RowMapper(){
-					@Override
-					public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
-					    return rs.getObject(1);
-					}
-                        	    });
-                        	    return rows;
-                        	}
-                                else
-                                {
-                                    return jdbc.query(sql, new BeanPropertyRowMapper(tt));
-                                }
+                                    //primitive list
+                        	    return jdbc.query(sql, columnListHandler);
+                                else//bean list
+                                    return jdbc.query(sql, getBeanListHandler(tt));
                             }
                         }
                     }
                     else if(rawType == Map.class)
                     {
-                        return jdbc.queryForMap(sql);
+                	//map<String, Object>
+                        return jdbc.query(sql, mapHandler);
                     }
                     else
                     {
-                        List result = jdbc.query(sql, new BeanPropertyRowMapper(rawType));
-                        if(result.isEmpty())
-                            return null;
-                        return result.get(0);
+                	//Bean
+                        return jdbc.query(sql, getBeanHandler(rawType));
                     }
                 }
             }
@@ -220,17 +214,20 @@ public class DaoFactory
                     {
                         if(sql.startsWith(insert))
                         {
-                            final String finalSql = sql;
-                            KeyHolder keyHolder = new GeneratedKeyHolder();
-                            jdbc.update(
-                                new PreparedStatementCreator() {
-                                    public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-                                        PreparedStatement ps = con.prepareStatement(finalSql, Statement.RETURN_GENERATED_KEYS);
-                                        return ps;
-                                    }
-                                }, keyHolder);
-                            
-                            return keyHolder.getKey();
+                            Connection conn = jdbc.getDataSource().getConnection();
+                            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                            try {
+                                stmt.executeUpdate();
+                                ResultSet keys = stmt.getGeneratedKeys();
+                                Integer result = keys.next() ? keys.getInt(1) : null;
+                                DbUtils.close(keys);
+                                return result;
+                            } catch (Exception e) {
+                                throw new DaoException("insert sql execute error, sql:" + sql, e);
+                            } finally {
+                        	DbUtils.close(stmt);
+                        	DbUtils.close(conn);
+                            }
                         }
                         else
                         {
@@ -309,6 +306,25 @@ public class DaoFactory
         }
         return result;
     }
+
+    @SuppressWarnings("unchecked")
+    private static <T> BeanHandler<T> getBeanHandler(Class<T> beanClass){
+	if(beanHandlers.containsKey(beanClass))
+	    return (BeanHandler<T>)beanHandlers.get(beanClass);
+	BeanHandler<T> handler = new BeanHandler<>(beanClass);
+	beanHandlers.put(beanClass, handler);
+	return handler;
+    }
+    
+    @SuppressWarnings("unchecked")
+    private static <T> BeanListHandler<T> getBeanListHandler(Class<T> beanClass){
+	if(beanListHandlers.containsKey(beanClass))
+	    return (BeanListHandler<T>)beanListHandlers.get(beanClass);
+	BeanListHandler<T> handler = new BeanListHandler<>(beanClass);
+	beanListHandlers.put(beanClass, handler);
+	return handler;
+    }
+    
 
     private static void checkDeadLoop(Object value)
     {
