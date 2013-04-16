@@ -12,8 +12,9 @@ public class Main {
 
 	/**
 	 * @param args
+	 * @throws Exception 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		DaoFactory daoFactory = new DaoContext().daoFactory;
 		ActiveDao activeDao = daoFactory.get(ActiveDao.class);
 //		logger.debug(activeDao.getAciveById(1).toString());
@@ -39,9 +40,8 @@ public class Main {
 //		long end = System.currentTimeMillis();
 //		
 //		System.out.println(end - start);
-		PageResult<Active> p1 = new PageResult<>(0, 10);
-		PageResult<Active> p2 = activeDao.getPage(p1);
-		
+		PageResult p1 = new PageResult(2, 10);
+		PageResult p2 = activeDao.getPage2(p1);
 		logger.debug("p1:" + p1.getData());
 		logger.debug("p2:" + p2.getData());
 	}

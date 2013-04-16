@@ -45,8 +45,8 @@ public interface ActiveDao
     public void update(@Arg("id") Integer id, @Arg("des")String des);
 
     @Sql("select * from active")
-    public PageResult<Active> getPage(@Page PageResult<Active> page);
+    public PageResult getPage(@Page(Active.class) PageResult page);
 
-    @Sql("select id from active")
-    public PageResult<Integer> getPage2(@Page PageResult<Active> page);
+    @Sql("select name from active")
+    public PageResult getPage2(@Page(String.class) PageResult page);
 }

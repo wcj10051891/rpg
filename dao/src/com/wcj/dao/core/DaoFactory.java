@@ -11,8 +11,10 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -27,8 +29,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.dbutils.handlers.ColumnListHandler;
@@ -72,6 +76,8 @@ public class DaoFactory {
 	private static ColumnListHandler<?> columnListHandler = new ColumnListHandler<>();
 	private static MapListHandler mapListHandler = new MapListHandler();
 	private static ScalarHandler<?> scalarHandler = new ScalarHandler<>();
+	private static BasicRowProcessor basicRowProcessor = new BasicRowProcessor();
+	
 
 	private static final Map<Class<?>, Class<?>> buildInTypes = new HashMap<Class<?>, Class<?>>();
 	static {
@@ -94,13 +100,13 @@ public class DaoFactory {
 		buildInTypes.put(String.class, String.class);
 	}
 	
-	private static final Map<String, Dialect> MAPPERS = new HashMap<String, Dialect>();
+	private static final Map<String, Dialect> dialects = new HashMap<String, Dialect>();
 	static {
-		MAPPERS.put( "MySQL", new MySqlDialect());
-		MAPPERS.put( "Microsoft SQL Server", new SqlServerDialect());
-		MAPPERS.put( "Oracle8", new Oracle8iDialect());
-		MAPPERS.put( "Oracle9", new Oracle9iDialect());
-		MAPPERS.put( "Oracle10", new Oracle10gDialect());
+		dialects.put( "MySQL", new MySqlDialect());
+		dialects.put( "Microsoft SQL Server", new SqlServerDialect());
+		dialects.put( "Oracle8", new Oracle8iDialect());
+		dialects.put( "Oracle9", new Oracle9iDialect());
+		dialects.put( "Oracle10", new Oracle10gDialect());
 	}
 
 	private Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<Class<?>, Object>();
@@ -114,7 +120,7 @@ public class DaoFactory {
 			try {
 				DatabaseMetaData meta = conn.getMetaData();
 				String databaseName = meta.getDatabaseProductName();
-				currentDialect = MAPPERS.get(databaseName);
+				currentDialect = dialects.get(databaseName);
 				if(currentDialect == null){
 					int databaseMajorVersion = 0;
 					try {
@@ -123,7 +129,7 @@ public class DaoFactory {
 					}
 					catch (Exception nsme) {
 					}
-					currentDialect = MAPPERS.get(databaseName + "" + databaseMajorVersion);
+					currentDialect = dialects.get(databaseName + "" + databaseMajorVersion);
 				}
 				if(currentDialect == null)
 					currentDialect = new Dialect();
@@ -153,7 +159,8 @@ public class DaoFactory {
 
 			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 			Map<String, Object> param = null;
-			PageResult<?> pageResult = null;
+			PageResult pageResult = null;
+			Class<?> pageReturnType = null;
 			for (int i = 0; i < parameterAnnotations.length; i++) {
 				Annotation[] anno = parameterAnnotations[i];
 				if (anno.length > 0)
@@ -171,8 +178,9 @@ public class DaoFactory {
 							matcher.appendTail(sqlTemp);
 							sql = sqlTemp.toString();
 						}
-					}else if (anno[0].annotationType() == Page.class && args[i] instanceof PageResult<?>) {
-						pageResult = (PageResult<?>)args[i];
+					}else if (anno[0].annotationType() == Page.class && args[i] instanceof PageResult) {
+					    pageReturnType = ((Page) anno[0]).value();
+					    pageResult = (PageResult)args[i];
 					}
 			}
 			local.remove();
@@ -184,13 +192,47 @@ public class DaoFactory {
 					if(total == 0)
 						return pageResult;
 					
-					sql = currentDialect.getLimitString(sql, pageResult.getStart(), pageResult.getLimit());
-					if(StringUtils.hasText(sql)){
-						pageResult.initByStart(pageResult.getStart(), pageResult.getLimit(), total.intValue());
-						pageResult.setData((List) query(sql, pageResult.getClass().getTypeParameters()[0]));
+					pageResult.init(total.intValue());
+					if(pageResult.getPageIndex() > pageResult.getPageCount()){
+					    pageResult.setData(Collections.EMPTY_LIST);
+					    return pageResult;
+					}
+					String limitSql = currentDialect.getLimitString(sql, pageResult.getStart(), pageResult.getPageSize());
+					if(StringUtils.hasText(limitSql)){
+						if (pageReturnType == Map.class)// List<Map<String, Object>
+						    pageResult.setData((List) jdbc.query(limitSql, mapListHandler));
+						else if (buildInTypes.containsKey(pageReturnType))// primitive list
+						    pageResult.setData((List) jdbc.query(limitSql, columnListHandler));
+						else// bean list
+						    pageResult.setData((List) jdbc.query(limitSql, getBeanListHandler(pageReturnType)));
 						return pageResult;
 					}else{
-						
+					    final PageResult result = pageResult;
+					    final Class<?> pageReturnTypeClass = pageReturnType;
+					    return jdbc.query(sql, new ResultSetHandler<PageResult>(){
+
+						@Override
+						public PageResult handle(ResultSet rs) throws SQLException {
+						    
+						    if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
+							rs.absolute(result.getStart() + 1);
+						    } else {
+							for (int i = 0; i < result.getStart(); i++) rs.next();
+						    }
+						    int limit = result.getPageSize();
+						    List rows = new ArrayList(); 
+						    for (int count = 0; rs.next() && count < limit; count++) {
+							if (pageReturnTypeClass == Map.class)// List<Map<String, Object>
+							    rows.add(basicRowProcessor.toMap(rs));
+							else if (buildInTypes.containsKey(pageReturnTypeClass))// primitive list
+							    rows.add(basicRowProcessor.toArray(rs)[0]);
+							else// bean list
+							    rows.add(basicRowProcessor.toBean(rs, pageReturnTypeClass));
+						    }
+						    result.setData(rows);
+						    return result;
+						}
+					    });
 					}
 				}else{
 					return query(sql, method.getGenericReturnType());
