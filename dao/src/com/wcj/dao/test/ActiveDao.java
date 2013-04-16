@@ -5,7 +5,9 @@ import java.util.Map;
 
 import com.wcj.dao.annotation.Arg;
 import com.wcj.dao.annotation.Dao;
+import com.wcj.dao.annotation.Page;
 import com.wcj.dao.annotation.Sql;
+import com.wcj.dao.core.page.PageResult;
 
 
 @Dao
@@ -41,4 +43,10 @@ public interface ActiveDao
     
     @Sql("update active set description=#des where id=#id")
     public void update(@Arg("id") Integer id, @Arg("des")String des);
+
+    @Sql("select * from active")
+    public PageResult<Active> getPage(@Page PageResult<Active> page);
+
+    @Sql("select id from active")
+    public PageResult<Integer> getPage2(@Page PageResult<Active> page);
 }

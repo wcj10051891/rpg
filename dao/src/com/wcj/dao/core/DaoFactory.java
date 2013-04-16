@@ -8,6 +8,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -18,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -38,8 +40,17 @@ import org.slf4j.LoggerFactory;
 
 import com.wcj.dao.annotation.Arg;
 import com.wcj.dao.annotation.Dao;
+import com.wcj.dao.annotation.Page;
 import com.wcj.dao.annotation.Sql;
+import com.wcj.dao.core.page.PageResult;
+import com.wcj.dao.core.page.dialect.Dialect;
+import com.wcj.dao.core.page.dialect.MySqlDialect;
+import com.wcj.dao.core.page.dialect.Oracle10gDialect;
+import com.wcj.dao.core.page.dialect.Oracle8iDialect;
+import com.wcj.dao.core.page.dialect.Oracle9iDialect;
+import com.wcj.dao.core.page.dialect.SqlServerDialect;
 import com.wcj.util.BeanUtils;
+import com.wcj.util.PageUtils;
 import com.wcj.util.StringUtils;
 
 public class DaoFactory {
@@ -82,13 +93,48 @@ public class DaoFactory {
 		buildInTypes.put(Double.class, Double.class);
 		buildInTypes.put(String.class, String.class);
 	}
+	
+	private static final Map<String, Dialect> MAPPERS = new HashMap<String, Dialect>();
+	static {
+		MAPPERS.put( "MySQL", new MySqlDialect());
+		MAPPERS.put( "Microsoft SQL Server", new SqlServerDialect());
+		MAPPERS.put( "Oracle8", new Oracle8iDialect());
+		MAPPERS.put( "Oracle9", new Oracle9iDialect());
+		MAPPERS.put( "Oracle10", new Oracle10gDialect());
+	}
 
 	private Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<Class<?>, Object>();
-	private Map<Method, QueryMethod> queryMethodCache = new ConcurrentHashMap<Method, QueryMethod>();
 	private QueryRunner jdbc;
+	private Dialect currentDialect;
 	
 	public DaoFactory(QueryRunner queryRunner) {
 		this.jdbc = queryRunner;
+		try {
+			Connection conn = this.jdbc.getDataSource().getConnection();
+			try {
+				DatabaseMetaData meta = conn.getMetaData();
+				String databaseName = meta.getDatabaseProductName();
+				currentDialect = MAPPERS.get(databaseName);
+				if(currentDialect == null){
+					int databaseMajorVersion = 0;
+					try {
+						Method gdbmvMethod = DatabaseMetaData.class.getMethod("getDatabaseMajorVersion", null);
+						databaseMajorVersion = ( (Integer) gdbmvMethod.invoke(meta, null) ).intValue();
+					}
+					catch (Exception nsme) {
+					}
+					currentDialect = MAPPERS.get(databaseName + "" + databaseMajorVersion);
+				}
+				if(currentDialect == null)
+					currentDialect = new Dialect();
+			}
+			finally {
+				DbUtils.close(conn);
+			}
+		}
+		catch (Exception e) {
+			logger.error("fetch database info error.", e);
+		}
 	}
 
 	private InvocationHandler handler = new InvocationHandler() {
@@ -107,6 +153,7 @@ public class DaoFactory {
 
 			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 			Map<String, Object> param = null;
+			PageResult<?> pageResult = null;
 			for (int i = 0; i < parameterAnnotations.length; i++) {
 				Annotation[] anno = parameterAnnotations[i];
 				if (anno.length > 0)
@@ -124,66 +171,30 @@ public class DaoFactory {
 							matcher.appendTail(sqlTemp);
 							sql = sqlTemp.toString();
 						}
+					}else if (anno[0].annotationType() == Page.class && args[i] instanceof PageResult<?>) {
+						pageResult = (PageResult<?>)args[i];
 					}
 			}
 			local.remove();
 //			logger.debug(sql);
 			if (sql.startsWith(select)) {
-				if (queryMethodCache.containsKey(method))
-					return queryMethodCache.get(method).execute(sql);
-				
-				Type returnType = method.getGenericReturnType();
-				if (returnType instanceof Class<?>) {
-					Class<?> c = (Class<?>) returnType;
-					// primitive
-					if (buildInTypes.containsKey(c)) {
-						queryMethodCache.put(method, new QueryMethod(jdbc, scalarHandler));
-					} else if (Map.class.isAssignableFrom(c))
-						// map<String, Object>
-						queryMethodCache.put(method, new QueryMethod(jdbc, mapHandler));
-					else if (Collection.class.isAssignableFrom(c))
-						// List<Map<String, Object>
-						queryMethodCache.put(method, new QueryMethod(jdbc, mapListHandler));
-					else
-						// Bean
-						queryMethodCache.put(method, new QueryMethod(jdbc, getBeanHandler(c)));
-				} else if (returnType instanceof ParameterizedType) {
-					ParameterizedType paramType = (ParameterizedType) returnType;
-					Class<?> rawType = (Class<?>) paramType.getRawType();
-					if (Collection.class.isAssignableFrom(rawType)) {
-						Type[] actualTypeArguments = paramType.getActualTypeArguments();
-						if (actualTypeArguments.length == 1) {
-							Type t = actualTypeArguments[0];
-							if (t instanceof ParameterizedType) {
-								ParameterizedType tt = (ParameterizedType) t;
-								if ((Class<?>) tt.getRawType() == Map.class) {
-									Type[] ttt = tt.getActualTypeArguments();
-									if ((Class<?>) ttt[0] == String.class && (Class<?>) ttt[1] == Object.class)
-										queryMethodCache.put(method, new QueryMethod(jdbc, mapListHandler));
-								}
-							} else {
-								Class<?> tt = (Class<?>) t;
-								if (tt == Map.class)
-									// List<Map<String, Object>
-									queryMethodCache.put(method, new QueryMethod(jdbc, mapListHandler));
-								else if (buildInTypes.containsKey(tt))
-									// primitive list
-									queryMethodCache.put(method, new QueryMethod(jdbc, columnListHandler));
-								else
-									// bean list
-									queryMethodCache.put(method, new QueryMethod(jdbc, getBeanListHandler(tt)));
-							}
-						}
-					} else if (rawType == Map.class) {
-						// map<String, Object>
-						queryMethodCache.put(method, new QueryMethod(jdbc, mapHandler));
-					} else {
-						// Bean
-						queryMethodCache.put(method, new QueryMethod(jdbc, getBeanHandler(rawType)));
+				//process page
+				if(pageResult != null && PageResult.class.isAssignableFrom(method.getReturnType())){
+					Long total = (Long) jdbc.query(PageUtils.getTotalSql(sql), scalarHandler);
+					if(total == 0)
+						return pageResult;
+					
+					sql = currentDialect.getLimitString(sql, pageResult.getStart(), pageResult.getLimit());
+					if(StringUtils.hasText(sql)){
+						pageResult.initByStart(pageResult.getStart(), pageResult.getLimit(), total.intValue());
+						pageResult.setData((List) query(sql, pageResult.getClass().getTypeParameters()[0]));
+						return pageResult;
+					}else{
+						
 					}
+				}else{
+					return query(sql, method.getGenericReturnType());
 				}
-				if (queryMethodCache.containsKey(method))
-					return queryMethodCache.get(method).execute(sql);
 			}else{
 				Type returnType = method.getReturnType();
 				Class<?> c = (Class<?>) returnType;
@@ -220,6 +231,61 @@ public class DaoFactory {
 			return null;
 		}
 	};
+	
+	private Object query(String sql, Type returnType) throws Throwable{
+		if (returnType instanceof Class<?>) {
+			Class<?> c = (Class<?>) returnType;
+			// primitive
+			if (buildInTypes.containsKey(c)) {
+				return jdbc.query(sql, scalarHandler);
+			} else if (Map.class.isAssignableFrom(c))
+				// map<String, Object>
+				return jdbc.query(sql, mapHandler);
+			else if (Collection.class.isAssignableFrom(c))
+				// List<Map<String, Object>
+				return jdbc.query(sql, mapListHandler);
+			else
+				// Bean
+				return jdbc.query(sql, getBeanHandler(c));
+		} else if (returnType instanceof ParameterizedType) {
+			ParameterizedType paramType = (ParameterizedType) returnType;
+			Class<?> rawType = (Class<?>) paramType.getRawType();
+			if (Collection.class.isAssignableFrom(rawType)) {
+				Type[] actualTypeArguments = paramType.getActualTypeArguments();
+				if (actualTypeArguments.length == 1) {
+					Type t = actualTypeArguments[0];
+					if (t instanceof ParameterizedType) {
+						ParameterizedType tt = (ParameterizedType) t;
+						if ((Class<?>) tt.getRawType() == Map.class) {
+							Type[] ttt = tt.getActualTypeArguments();
+							if ((Class<?>) ttt[0] == String.class && (Class<?>) ttt[1] == Object.class)
+								return jdbc.query(sql, mapListHandler);
+						}
+					} else if (t instanceof Class<?>) {
+						Class<?> tt = (Class<?>) t;
+						if (tt == Map.class)
+							// List<Map<String, Object>
+							return jdbc.query(sql, mapListHandler);
+						else if (buildInTypes.containsKey(tt))
+							// primitive list
+							return jdbc.query(sql, columnListHandler);
+						else
+							// bean list
+							return jdbc.query(sql, getBeanListHandler(tt));
+					} else {
+						return jdbc.query(sql, mapListHandler);
+					}
+				}
+			} else if (rawType == Map.class) {
+				// map<String, Object>
+				return jdbc.query(sql, mapHandler);
+			} else {
+				// Bean
+				return jdbc.query(sql, getBeanHandler(rawType));
+			}
+		}
+		return null;
+	}
 
 	private static ThreadLocal<Set<Object>> local = new ThreadLocal<Set<Object>>();
 

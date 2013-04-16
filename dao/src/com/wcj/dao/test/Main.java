@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.wcj.dao.core.DaoContext;
 import com.wcj.dao.core.DaoFactory;
+import com.wcj.dao.core.page.PageResult;
 
 public class Main {
 	private static Logger logger = LoggerFactory.getLogger(Main.class);
@@ -32,11 +33,16 @@ public class Main {
 		// active.id = null;
 		// logger.debug(activeDao.insert(active).toString());
 		
-		long start = System.currentTimeMillis();
-		for(int i = 0; i < 20000; i++)
-			activeDao.getAciveById(1);
-		long end = System.currentTimeMillis();
+//		long start = System.currentTimeMillis();
+//		for(int i = 0; i < 20000; i++)
+//			activeDao.getAciveById(1);
+//		long end = System.currentTimeMillis();
+//		
+//		System.out.println(end - start);
+		PageResult<Active> p1 = new PageResult<>(0, 10);
+		PageResult<Active> p2 = activeDao.getPage(p1);
 		
-		System.out.println(end - start);
+		logger.debug("p1:" + p1.getData());
+		logger.debug("p2:" + p2.getData());
 	}
 }
