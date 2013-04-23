@@ -158,16 +158,12 @@ public class DaoFactory {
 				return null;
 
 			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-			Map<String, Object> param = null;
 			PageResult pageResult = null;
 			Class<?> pageReturnType = null;
 			for (int i = 0; i < parameterAnnotations.length; i++) {
 				Annotation[] anno = parameterAnnotations[i];
 				if (anno.length > 0)
 					if (anno[0].annotationType() == Arg.class) {
-						if (param == null)
-							param = new LinkedHashMap<String, Object>(parameterAnnotations.length);
-
 						for (Entry<String, String> entry : convert(((Arg) anno[0]).value(), args[i]).entrySet()) {
 							String key = entry.getKey();
 							Matcher matcher = Pattern.compile(argPrefix + key).matcher(sql);

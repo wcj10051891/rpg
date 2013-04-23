@@ -49,4 +49,6 @@ public interface ActiveDao
 
     @Sql("select name from active")
     public PageResult getPage2(@Page(String.class) PageResult page);
+
+    public PageResult getPage3(@Page(Map.class) PageResult page, @Sql String sql, @Arg("id")Integer id);
 }

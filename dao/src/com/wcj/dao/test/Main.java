@@ -40,7 +40,7 @@ public class Main {
 //		long end = System.currentTimeMillis();
 //		
 //		System.out.println(end - start);
-		PageResult p1 = new PageResult(2, 10);
+		PageResult p1 = new PageResult(5, 10);
 		PageResult p2 = activeDao.getPage2(p1);
 		logger.debug("p1:" + p1.getData());
 		logger.debug("p2:" + p2.getData());
