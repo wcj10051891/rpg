@@ -9,4 +9,8 @@ public class Channels {
 	public void put(Integer channelId, ChannelContext channelContext){
 		this.channels.put(channelId, channelContext);
 	}
+	
+	public ChannelContext getChannelContext(Integer channelId){
+	    return channels.get(channelId);
+	}
 }

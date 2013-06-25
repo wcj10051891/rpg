@@ -8,6 +8,7 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 
 public class Client {
 	static ByteBuffer readBuffer = ByteBuffer.allocate(1024);
@@ -45,14 +46,14 @@ public class Client {
 					}
 				}
 				if (k.isWritable()) {
-					channel.write(ByteBuffer.wrap("你好".getBytes()));
-					channel.close();
-//					Scanner scanner = new Scanner(System.in);
-//					while(scanner.hasNextLine()){
-//						String send = scanner.nextLine();
-//						int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
-//						System.out.println("send to socket:" + send + ", write count:" + writeCount);
-//					}
+					Scanner scanner = new Scanner(System.in);
+					while(scanner.hasNextLine()){
+						String send = scanner.nextLine();
+						if("quit".equals(send))
+						    channel.close();
+						int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
+						System.out.println("send to socket:" + send + ", write count:" + writeCount);
+					}
 				}
 				it.remove();
 			}
