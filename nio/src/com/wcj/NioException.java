@@ -1,5 +1,9 @@
 package com.wcj;
 
+/**
+ * nio exception
+ * @author wcj
+ */
 public class NioException extends RuntimeException {
     /**
      * 
