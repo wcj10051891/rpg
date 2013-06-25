@@ -12,6 +12,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.wcj.NioException;
 
+/**
+ * acceptor
+ * @author wcj
+ */
 public class Acceptor {
     private Selector selector;
     private AtomicBoolean starting = new AtomicBoolean();
