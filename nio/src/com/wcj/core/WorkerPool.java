@@ -2,6 +2,8 @@ package com.wcj.core;
 
 import java.util.LinkedList;
 
+import com.wcj.util.RandomUtils;
+
 public class WorkerPool {
 	private LinkedList<Worker> workers;
 
@@ -11,15 +13,7 @@ public class WorkerPool {
 			workers.add(new Worker());
 	}
 
-	public Worker aquire() {
-		synchronized (workers) {
-			return workers.removeFirst();
-		}
-	}
-
-	public void returnWorker(Worker worker) {
-		synchronized (workers) {
-			workers.addLast(worker);
-		}
+	public Worker get() {
+		return workers.get(RandomUtils.nextRandomInt(0, workers.size() - 1));
 	}
 }

@@ -46,6 +46,7 @@ public class Worker {
 	public void register(ChannelContext channelContext){
 		try {
 			channelContext.getSocket().register(selector, SelectionKey.OP_READ, channelContext.getChannelId());
+			Context.handler.onConnect(channelContext.getChannelId());
 		} catch (ClosedChannelException e) {
 			throw new NioException("socket register error.", e);
 		}
@@ -67,7 +68,7 @@ public class Worker {
 		while (this.worker.running.get()) {
 			int count = -1;
 			try {
-				count = this.worker.selector.select();
+				count = this.worker.selector.select(1000);
 			} catch (IOException e) {
 				throw new NioException("select error.", e);
 			}
@@ -92,42 +93,50 @@ public class Worker {
 		for (Iterator<SelectionKey> it = selectedKeys.iterator(); it.hasNext();) {
 			SelectionKey k = it.next();
 			SocketChannel channel = (SocketChannel) k.channel();
+			Integer channelId = (Integer)k.attachment();
 			if (k.isReadable()) {
 				try {
-					ByteBuffer readBuffer = Context.channels.getChannelContext((Integer)k.attachment()).getReadBuffer();
-					ByteBuffer tempReadBuffer = ByteBuffer.allocate(128);
+					ByteBuffer all = null;
+					ByteBuffer temp = ByteBuffer.allocate(128);
 					int rCount = -1;
-					while((rCount = channel.read(tempReadBuffer)) > 0){
-						tempReadBuffer.flip();
-						Utils.ensureCapacity(readBuffer, rCount);
-						while(tempReadBuffer.hasRemaining()){
-							readBuffer.put(tempReadBuffer);
+					while((rCount = channel.read(temp)) > 0){
+						if(all == null){
+							all = ByteBuffer.allocate(1024);
+						}
+						temp.flip();
+						Utils.ensureCapacity(all, rCount);
+						while(temp.hasRemaining()){
+							all.put(temp);
 						}
 					}
-						readBuffer.flip();
-						if(readBuffer.hasRemaining()){
-						    byte[] data = Arrays.copyOfRange(readBuffer.array(), readBuffer.position(), readBuffer.limit());
-							System.out.println("read from socket:" + new String(data));
-							readBuffer.clear();
-						}
+					all.flip();
+					if(all.hasRemaining()){
+						Context.channels.getChannelContext(channelId).onReceive(Arrays.copyOfRange(all.array(), 0, all.limit()));
+					}
 				} catch (IOException e) {
+					e.printStackTrace();
 					System.out.println("read from socket error:" + e);
 					try {
+						Context.handler.onClose(channelId);
 						channel.close();
 					} catch (IOException e1) {
 						System.out.println("channel close error:" + e1);
 					}
 				}
 			}
-			if (k.isWritable()) {
+//			if (k.isWritable()) {
 //				Scanner scanner = new Scanner(System.in);
 //				while(scanner.hasNextLine()){
 //					String send = scanner.nextLine();
 //					int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
 //					System.out.println("send to socket:" + send + ", write count:" + writeCount);
 //				}
+//			}
+			try {
+				it.remove();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			it.remove();
 		}
 	    }
 	    

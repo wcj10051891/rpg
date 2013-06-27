@@ -47,7 +47,7 @@ public class Acceptor {
 			while (starting.get()) {
 				int count = -1;
 				try {
-					count = this.selector.select();
+					count = this.selector.select(1000);
 				} catch (IOException e) {
 					starting.set(false);
 					throw new NioException("select error.", e);
@@ -63,7 +63,7 @@ public class Acceptor {
 							socket.configureBlocking(false);
 							int channelId = channelSerialNo.addAndGet(1);
 							ChannelContext channelContext = new ChannelContext(channelId, socket);
-							Context.workerPool.aquire().register(channelContext);
+							Context.workerPool.get().register(channelContext);
 							Context.channels.put(channelId, channelContext);
 						} catch (Exception e) {
 							e.printStackTrace();

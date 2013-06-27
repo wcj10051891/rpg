@@ -49,10 +49,9 @@ public class Client {
 					Scanner scanner = new Scanner(System.in);
 					while(scanner.hasNextLine()){
 						String send = scanner.nextLine();
-						if("quit".equals(send))
-						    channel.close();
 						int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
 						System.out.println("send to socket:" + send + ", write count:" + writeCount);
+						break;
 					}
 				}
 				it.remove();

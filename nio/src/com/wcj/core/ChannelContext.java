@@ -1,18 +1,18 @@
 package com.wcj.core;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+
+import com.wcj.NioException;
 
 public class ChannelContext {
 	private SocketChannel socket;
 	private Integer channelId;
-	private ByteBuffer readBuffer;
-	private static final int DEFAULT_READ_BUFFER_SIZE = 1024;
 
 	public ChannelContext(int channelId, SocketChannel socket) {
 		this.channelId = channelId;
 		this.socket = socket;
-		this.readBuffer = ByteBuffer.allocate(DEFAULT_READ_BUFFER_SIZE);
 	}
 	
 	public SocketChannel getSocket() {
@@ -22,8 +22,17 @@ public class ChannelContext {
 	public Integer getChannelId() {
 		return channelId;
 	}
-
-	public ByteBuffer getReadBuffer() {
-		return readBuffer;
+	
+	public void onReceive(byte[] data){
+		Context.handler.onReceive(Context.protocolFactory.getDecoder().decode(data), channelId);
+	}
+	
+	public void send(Object message){
+		try {
+			socket.write(ByteBuffer.wrap(Context.protocolFactory.getEncoder().encode(String.valueOf(message))));
+		} catch (IOException e) {
+			e.printStackTrace();
+			new NioException("send message error.", e);
+		}
 	}
 }
