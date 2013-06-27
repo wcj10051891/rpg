@@ -10,6 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
+import com.wcj.app.protocol.JSONEncoder;
+import com.wcj.app.protocol.Player;
+
 public class Client {
 	static ByteBuffer readBuffer = ByteBuffer.allocate(1024);
 
@@ -48,9 +51,14 @@ public class Client {
 				if (k.isWritable()) {
 					Scanner scanner = new Scanner(System.in);
 					while(scanner.hasNextLine()){
-						String send = scanner.nextLine();
-						int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
-						System.out.println("send to socket:" + send + ", write count:" + writeCount);
+//						String send = scanner.nextLine();
+//						int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
+//						System.out.println("send to socket:" + send + ", write count:" + writeCount);
+						Player p = new Player();
+						p.setB(true);
+						p.setC('z');
+						p.setI(100);
+						channel.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(p)));
 						break;
 					}
 				}

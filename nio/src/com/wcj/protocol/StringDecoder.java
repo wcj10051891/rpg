@@ -2,7 +2,7 @@ package com.wcj.protocol;
 
 import java.nio.charset.Charset;
 
-public class StringDecoder extends Decoder<String> {
+public class StringDecoder extends Decoder {
 
 	private Charset charset = Charset.defaultCharset();
 
@@ -14,8 +14,8 @@ public class StringDecoder extends Decoder<String> {
 	}
 
 	@Override
-	public String decode(byte[] data) {
-		return new String(data, charset);
+	public Object decode(byte[] message) {
+		return new String(message, charset);
 	}
 
 }

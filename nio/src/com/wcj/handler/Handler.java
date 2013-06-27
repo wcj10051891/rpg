@@ -1,6 +1,5 @@
 package com.wcj.handler;
 
-import com.wcj.core.Context;
 
 public class Handler {
 
@@ -10,7 +9,7 @@ public class Handler {
 
 	public void onReceive(Object message, Integer channelId) {
 		System.out.println("channel receive:" + message);
-		Context.channels.getChannelContext(channelId).send(message);
+//		Context.channels.getChannelContext(channelId).send(message);
 	}
 
 	public void onClose(Integer channelId) {

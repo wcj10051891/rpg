@@ -1,17 +1,17 @@
 package com.wcj.protocol;
 
-public class StringProtocolFactory extends ProtocolFactory<String> {
+public class StringProtocolFactory extends ProtocolFactory {
 	
 	private static StringDecoder decoder = new StringDecoder();
 	private static StringEncoder encoder = new StringEncoder();
 
 	@Override
-	public Encoder<String> getEncoder() {
+	public Encoder getEncoder() {
 		return encoder;
 	}
 
 	@Override
-	public Decoder<String> getDecoder() {
+	public Decoder getDecoder() {
 		return decoder;
 	}
 }
