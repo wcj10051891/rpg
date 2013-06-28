@@ -1,4 +1,4 @@
-package com.wcj;
+package com.wcj.bootstrap;
 
 import com.wcj.core.Acceptor;
 import com.wcj.core.Context;

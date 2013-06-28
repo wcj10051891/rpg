@@ -22,6 +22,7 @@ public class Worker {
 	private AtomicBoolean running = new AtomicBoolean();
 	private ExecutorService selectPool;
 	private ExecutorService workerPool;
+    private AtomicBoolean wakenUp = new AtomicBoolean();
 	
 	public Worker() {
 		try {
@@ -47,6 +48,9 @@ public class Worker {
 		try {
 			channelContext.getSocket().register(selector, SelectionKey.OP_READ, channelContext.getChannelId());
 			Context.handler.onConnect(channelContext.getChannelId());
+			
+			if(wakenUp.compareAndSet(false, true))
+				this.selector.wakeup();
 		} catch (ClosedChannelException e) {
 			throw new NioException("socket register error.", e);
 		}
@@ -66,9 +70,12 @@ public class Worker {
 	    @Override
 	    public void run() {
 		while (this.worker.running.get()) {
+			this.worker.wakenUp.set(false);
 			int count = -1;
 			try {
-				count = this.worker.selector.select(1000);
+				count = this.worker.selector.select(500);
+				if(this.worker.wakenUp.get())
+					this.worker.selector.wakeup();
 			} catch (IOException e) {
 				throw new NioException("select error.", e);
 			}
@@ -108,6 +115,7 @@ public class Worker {
 						while(temp.hasRemaining()){
 							all.put(temp);
 						}
+						temp.clear();
 					}
 					all.flip();
 					if(all.hasRemaining()){

@@ -47,7 +47,7 @@ public class Acceptor {
 			while (starting.get()) {
 				int count = -1;
 				try {
-					count = this.selector.select(1000);
+					count = this.selector.select();
 				} catch (IOException e) {
 					starting.set(false);
 					throw new NioException("select error.", e);

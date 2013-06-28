@@ -28,12 +28,11 @@ public class JSONDecoder extends Decoder {
 			sum.reset();
 			return null;
 		}
-		if(sum.remaining() < length){
-			sum.reset();
-			return null;
-		}
 		try {
-
+			if(sum.remaining() < length){
+				sum.reset();
+				return null;
+			}
 			byte[] body = new byte[length]; 
 			sum.get(body, 0, length);
 			sum.compact();

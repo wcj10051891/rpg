@@ -1,4 +1,4 @@
-package com.wcj;
+package com.wcj.bootstrap;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -6,12 +6,13 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
 import com.wcj.app.protocol.JSONEncoder;
-import com.wcj.app.protocol.Player;
+import com.wcj.app.protocol.RequestDto;
 
 public class Client {
 	static ByteBuffer readBuffer = ByteBuffer.allocate(1024);
@@ -54,11 +55,15 @@ public class Client {
 //						String send = scanner.nextLine();
 //						int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
 //						System.out.println("send to socket:" + send + ", write count:" + writeCount);
-						Player p = new Player();
-						p.setB(true);
-						p.setC('z');
-						p.setI(100);
-						channel.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(p)));
+						RequestDto request = new RequestDto();
+						request.setClazz("com.wcj.app.modules.FirstController");
+						request.setMethod("secondMethod");
+						List<Object> params = new ArrayList<>();
+						params.add(1);
+						params.add(false);
+						request.setParams(params);
+						request.setSn(1);
+						channel.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(request)));
 						break;
 					}
 				}
