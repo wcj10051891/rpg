@@ -9,11 +9,10 @@ public class Handler {
 
 	public void onReceive(Object message, Integer channelId) {
 		System.out.println("channel receive:" + message);
-//		Context.channels.getChannelContext(channelId).send(message);
 	}
 
 	public void onClose(Integer channelId) {
-		System.out.println("channel " + channelId + "close.");
+		System.out.println("channel " + channelId + " close.");
 
 	}
 }

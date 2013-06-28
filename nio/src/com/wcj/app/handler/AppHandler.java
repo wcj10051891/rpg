@@ -11,6 +11,7 @@ public class AppHandler extends Handler {
 	@Override
 	public void onConnect(Integer channelId) {
 		super.onConnect(channelId);
+		Context.groups.join("world", channelId);
 	}
 	
 	@Override
@@ -24,7 +25,7 @@ public class AppHandler extends Handler {
 			ResponseDto response = new ResponseDto();
 			response.setSn(request.getSn());
 			response.setResult(result);
-			Context.channels.getChannelContext(channelId).send(response);
+			Context.channels.get(channelId).send(response);
 		}
 	}
 	

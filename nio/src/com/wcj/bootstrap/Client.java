@@ -1,12 +1,12 @@
 package com.wcj.bootstrap;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -18,11 +18,50 @@ public class Client {
 	static ByteBuffer readBuffer = ByteBuffer.allocate(1024);
 
 	public static void main(String[] args) throws Exception {
-		SocketChannel socket = SocketChannel.open(new InetSocketAddress(1234));
+		final SocketChannel socket = SocketChannel.open(new InetSocketAddress(1234));
 		socket.configureBlocking(false);
 
 		Selector selector = Selector.open();
-		socket.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		socket.register(selector, SelectionKey.OP_READ);
+		
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				Scanner scanner = new Scanner(System.in);
+				while(scanner.hasNextLine()){
+					String send = scanner.nextLine();
+					if(send.equals("1")){
+						RequestDto request = new RequestDto();
+						request.setClazz("com.wcj.app.modules.FirstController");
+						request.setMethod("firstMethod");
+						List<Object> params = new ArrayList<>();
+						params.add(1);
+						params.add(false);
+						request.setParams(params);
+						request.setSn(1);
+						try {
+							socket.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(request)));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}else if(send.equals("all")){
+						RequestDto request = new RequestDto();
+						request.setClazz("com.wcj.app.modules.FirstController");
+						request.setMethod("broadcast");
+						List<Object> params = new ArrayList<>();
+						params.add("牛逼的大神发话了" + System.currentTimeMillis());
+						request.setParams(params);
+						request.setSn(2);
+						try {
+							socket.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(request)));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}).start();
 
 		while (true) {
 			int n = selector.select();
@@ -47,24 +86,6 @@ public class Client {
 							b[i] = in.get(i);
 						}
 						System.out.println("read from socket:" + new String(b));
-					}
-				}
-				if (k.isWritable()) {
-					Scanner scanner = new Scanner(System.in);
-					while(scanner.hasNextLine()){
-//						String send = scanner.nextLine();
-//						int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
-//						System.out.println("send to socket:" + send + ", write count:" + writeCount);
-						RequestDto request = new RequestDto();
-						request.setClazz("com.wcj.app.modules.FirstController");
-						request.setMethod("secondMethod");
-						List<Object> params = new ArrayList<>();
-						params.add(1);
-						params.add(false);
-						request.setParams(params);
-						request.setSn(1);
-						channel.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(request)));
-						break;
 					}
 				}
 				it.remove();

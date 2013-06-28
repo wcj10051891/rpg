@@ -14,10 +14,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.log4j.Logger;
+
 import com.wcj.NioException;
+import com.wcj.channel.ChannelContext;
 import com.wcj.util.Utils;
 
 public class Worker {
+	private static final Logger log = Logger.getLogger(Worker.class);
 	private Selector selector;
 	private AtomicBoolean running = new AtomicBoolean();
 	private ExecutorService selectPool;
@@ -33,13 +37,13 @@ public class Worker {
 		selectPool = Executors.newFixedThreadPool(1, new ThreadFactory() {
 		    @Override
 		    public Thread newThread(Runnable r) {
-			return new Thread(r, "worker select thread #" + r.toString());
+			return new Thread(r, "worker select thread:" + r.toString());
 		    }
 		});
 		workerPool = Executors.newFixedThreadPool(3, new ThreadFactory() {
 		    @Override
 		    public Thread newThread(Runnable r) {
-			return new Thread(r, "worker working thread #" + r.toString());
+			return new Thread(r, "worker working thread:" + r.toString());
 		    }
 		});
 	}
@@ -76,8 +80,8 @@ public class Worker {
 				count = this.worker.selector.select(500);
 				if(this.worker.wakenUp.get())
 					this.worker.selector.wakeup();
-			} catch (IOException e) {
-				throw new NioException("select error.", e);
+			} catch (Exception e) {
+				throw new NioException("worker select error.", e);
 			}
 			if (count <= 0)
 				continue;
@@ -119,31 +123,24 @@ public class Worker {
 					}
 					all.flip();
 					if(all.hasRemaining()){
-						Context.channels.getChannelContext(channelId).onReceive(Arrays.copyOfRange(all.array(), 0, all.limit()));
+						Context.channels.get(channelId).onReceive(Arrays.copyOfRange(all.array(), 0, all.limit()));
 					}
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.out.println("read from socket error:" + e);
+				} catch (Exception e) {
+					log.error("read from socket error:", e);
 					try {
 						Context.handler.onClose(channelId);
 						channel.close();
-					} catch (IOException e1) {
-						System.out.println("channel close error:" + e1);
+					} catch (Exception ex) {
+						log.error("channel close error:", ex);
+					} finally {
+						Context.channels.remove(channelId);
 					}
 				}
 			}
-//			if (k.isWritable()) {
-//				Scanner scanner = new Scanner(System.in);
-//				while(scanner.hasNextLine()){
-//					String send = scanner.nextLine();
-//					int writeCount = channel.write(ByteBuffer.wrap(send.getBytes("GBK")));
-//					System.out.println("send to socket:" + send + ", write count:" + writeCount);
-//				}
-//			}
 			try {
 				it.remove();
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error("worker remove key error:", e);
 			}
 		}
 	    }

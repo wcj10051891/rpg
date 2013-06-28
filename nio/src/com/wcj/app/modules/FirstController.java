@@ -3,6 +3,8 @@ package com.wcj.app.modules;
 import org.apache.log4j.Logger;
 
 import com.wcj.app.handler.Controller;
+import com.wcj.app.protocol.ResponseDto;
+import com.wcj.core.Context;
 
 @Controller
 public class FirstController {
@@ -13,8 +15,10 @@ public class FirstController {
 		log.debug("FirstController#firstMethod invoked.");
 	}
 	
-	public String secondMethod(int i, boolean b) {
-		log.debug("FirstController#secondMethod invoked.");
-		return "yes";
+	public void broadcast(String message) {
+		log.debug("FirstController#broadcast invoked.");
+		ResponseDto result = new ResponseDto();
+		result.setResult(message);
+		Context.groups.broadcast("world", result);
 	}
 }

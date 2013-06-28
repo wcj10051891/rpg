@@ -1,14 +1,16 @@
-package com.wcj.core;
+package com.wcj.channel;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import com.wcj.NioException;
+import org.apache.log4j.Logger;
+
+import com.wcj.core.Context;
 import com.wcj.protocol.Decoder;
 import com.wcj.protocol.Encoder;
 
 public class ChannelContext {
+	private static final Logger log = Logger.getLogger(ChannelContext.class);
 	private SocketChannel socket;
 	private Integer channelId;
 	private Encoder encoder;
@@ -35,10 +37,9 @@ public class ChannelContext {
 	
 	public void send(Object message){
 		try {
-			socket.write(ByteBuffer.wrap(this.encoder.encode(String.valueOf(message))));
-		} catch (IOException e) {
-			e.printStackTrace();
-			new NioException("send message error.", e);
+			socket.write(ByteBuffer.wrap(this.encoder.encode(message)));
+		} catch (Exception e) {
+			log.error("channel send message error.", e);
 		}
 	}
 }

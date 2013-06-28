@@ -10,14 +10,17 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.log4j.Logger;
+
 import com.wcj.NioException;
+import com.wcj.channel.ChannelContext;
 
 /**
  * acceptor
- * 
  * @author wcj
  */
 public class Acceptor {
+	private static final Logger log = Logger.getLogger(Acceptor.class);
 	private Selector selector;
 	private AtomicBoolean starting = new AtomicBoolean();
 	private int portNo;
@@ -63,14 +66,17 @@ public class Acceptor {
 							socket.configureBlocking(false);
 							int channelId = channelSerialNo.addAndGet(1);
 							ChannelContext channelContext = new ChannelContext(channelId, socket);
-							Context.workerPool.get().register(channelContext);
+							Context.workerPool.take().register(channelContext);
 							Context.channels.put(channelId, channelContext);
 						} catch (Exception e) {
-							e.printStackTrace();
-							System.out.println("socket accept error:" + e);
+							log.error("socket accept error:", e);
 						}
 					}
-					it.remove();
+					try {
+						it.remove();
+					} catch (Exception e) {
+						log.error("acceptor remove key error:", e);
+					}
 				}
 			}
 		}
