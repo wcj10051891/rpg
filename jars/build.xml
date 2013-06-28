@@ -1,0 +1,80 @@
+<project name="jars" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+
+	<tstamp>
+		<format property="version" pattern="yyMMdd" />
+	</tstamp>
+	<property name="jdk.version" value="1.6" />
+	<property name="source.encoding" value="UTF-8" />
+	<property name="app.name" value="jars" />
+	
+	<artifact:pom id="pom.this" file="pom.xml" />
+	<artifact:dependencies filesetid="fileset.lib.runtime" pathid="path.lib.runtime" pomrefid="pom.this" usescope="runtime" />
+
+
+	<!--////////////////////////        Path define -->
+
+	<path id="classpath.project">
+		<fileset dir="lib/" />
+		<pathelement location="target/classes" />
+	</path>
+	<path id="classpath.project-test">
+		<path refid="classpath.project" />
+		<fileset dir="lib/" />
+		<pathelement location="target/classes-test" />
+	</path>
+
+
+	<target name="clean">
+		<delete file="target/*" />
+	</target>
+	
+
+	<target name="compile" depends="clean">
+		<delete dir="target/classes" />
+		<mkdir dir="target/classes" />
+		<javac srcdir="src/java" destdir="target/classes" source="${jdk.version}" target="${jdk.version}" encoding="${source.encoding}" debug="true">
+			<classpath>
+				<path refid="classpath.project" />
+			</classpath>
+		</javac>
+		<copy todir="target/classes">
+			<fileset dir="src/resources">
+				<include name="**" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="dist" depends="compile">
+		<jar destfile="target/${app.name}.jar">
+			<fileset dir="target/classes" />
+		</jar>
+	</target>
+	
+	<target name="dist-src" description="Archive Src" depends="dist">
+		<jar destfile="target/${app.name}-src.jar">
+			<fileset dir="src/java">
+				<include name="**" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="javadoc">
+		<echo message="----------------- Create Javadoc -----------------" />
+		<javadoc destdir="target/document/javadoc" sourcepath="src/java" encoding="utf-8" docencoding="utf-8" charset="utf-8">
+			<classpath>
+				<path refid="classpath.project" />
+			</classpath>
+		</javadoc>
+	</target>
+
+	<target name="copy-maven-lib-jar">
+		<delete dir="lib">
+		</delete>
+		<mkdir dir="lib" />
+		<copy todir="lib" flatten="true">
+			<fileset refid="fileset.lib.runtime" />
+			<!-- This mapper strips off all leading directory information -->
+			<mapper type="flatten" />
+		</copy>
+	</target>
+</project>
