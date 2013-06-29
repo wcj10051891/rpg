@@ -9,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.wcj.core.Context;
 
 public class Groups {
+	
+	public static final String World = "world";
+	
 	private Map<String, ChannelGroup> groups = new ConcurrentHashMap<>();
 
 	public ChannelGroup create(String groupName) {
@@ -45,11 +48,11 @@ public class Groups {
 	@SuppressWarnings("unchecked")
 	public void broadcast(String groupName, Object message, Integer... excludeChannelIds) {
 		ChannelGroup group = groups.get(groupName);
-		List<Integer> excludeIds = excludeChannelIds.length == 0 ? Collections.EMPTY_LIST : Arrays
-				.asList(excludeChannelIds);
+		List<Integer> excludeIds = excludeChannelIds.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(excludeChannelIds);
+		byte[] msg = Context.protocolFactory.getEncoder().encode(message);
 		for (Integer channelId : group.getChannelIds()) {
 			if (!excludeIds.contains(channelId))
-				Context.channels.get(channelId).send(message);
+				Context.channels.get(channelId).send(msg);
 		}
 	}
 }

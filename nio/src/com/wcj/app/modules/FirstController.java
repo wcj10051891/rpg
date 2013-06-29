@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import com.wcj.app.handler.Controller;
 import com.wcj.app.protocol.ResponseDto;
+import com.wcj.channel.Groups;
 import com.wcj.core.Context;
 
 @Controller
@@ -19,6 +20,6 @@ public class FirstController {
 		log.debug("FirstController#broadcast invoked.");
 		ResponseDto result = new ResponseDto();
 		result.setResult(message);
-		Context.groups.broadcast("world", result);
+		Context.groups.broadcast(Groups.World, result);
 	}
 }
