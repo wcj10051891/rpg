@@ -2,8 +2,6 @@ package com.wcj.core;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketOption;
-import java.net.SocketOptions;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -62,6 +60,11 @@ public class Acceptor {
 
 				for (Iterator<SelectionKey> it = this.selector.selectedKeys().iterator(); it.hasNext();) {
 					SelectionKey k = it.next();
+					try {
+						it.remove();
+					} catch (Exception e) {
+						log.error("acceptor remove key error:", e);
+					}
 					if (k.isAcceptable()) {
 						try {
 							SocketChannel socketChannel = ((ServerSocketChannel) k.channel()).accept();
@@ -70,15 +73,9 @@ public class Acceptor {
 							int channelId = channelSerialNo.addAndGet(1);
 							ChannelContext channelContext = new ChannelContext(channelId, socketChannel);
 							Context.workerPool.take().register(channelContext);
-							Context.channels.put(channelId, channelContext);
 						} catch (Exception e) {
 							log.error("socket accept error:", e);
 						}
-					}
-					try {
-						it.remove();
-					} catch (Exception e) {
-						log.error("acceptor remove key error:", e);
 					}
 				}
 			}

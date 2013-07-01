@@ -11,8 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
-import com.wcj.app.protocol.JSONEncoder;
 import com.wcj.app.protocol.RequestDto;
+import com.wcj.app.protocol.json.JSONEncoder;
 
 public class Client {
 	static ByteBuffer readBuffer = ByteBuffer.allocate(1024);

@@ -1,4 +1,4 @@
-package com.wcj.app.protocol;
+package com.wcj.app.protocol.json;
 
 import java.nio.ByteBuffer;
 
@@ -19,26 +19,18 @@ public class JSONDecoder extends Decoder {
 	public Object decode(byte[] message) {
 		Utils.ensureCapacity(sum, message.length);
 		sum.put(message);
-		sum.mark();
+		int mark = sum.position();
 		sum.flip();
 		int length = 0;
 		try {
 			length = sum.getInt();
 		} catch (Exception e) {
-			try {
-				sum.reset();
-			} catch (Exception ex) {
-				log.warn("decode buffer reset mark error.", ex);
-			}
+			sum.position(mark);
 			return null;
 		}
 		try {
 			if(sum.remaining() < length){
-				try {
-					sum.reset();
-				} catch (Exception ex) {
-					log.warn("decode buffer reset mark error.", ex);
-				}
+				sum.position(mark);
 				return null;
 			}
 			byte[] body = new byte[length]; 

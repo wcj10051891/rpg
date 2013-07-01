@@ -1,4 +1,4 @@
-package com.wcj.app.protocol;
+package com.wcj.app.protocol.json;
 
 import com.wcj.protocol.Decoder;
 import com.wcj.protocol.Encoder;

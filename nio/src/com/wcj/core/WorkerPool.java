@@ -18,6 +18,6 @@ public class WorkerPool {
 	}
 
 	public Worker take() {
-		return workers.get(this.count.incrementAndGet() % this.size);
+		return workers.get(Math.abs(this.count.incrementAndGet() % this.size));
 	}
 }

@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadFactory;
 
 import com.wcj.app.handler.AppHandler;
 import com.wcj.app.handler.Dispatcher;
-import com.wcj.app.protocol.JSONProtocolFactory;
+import com.wcj.app.protocol.websocket.WebSocketProtocolFactory;
 import com.wcj.channel.ChannelGroup;
 import com.wcj.channel.Channels;
 import com.wcj.channel.Groups;
@@ -28,7 +28,7 @@ public class Context {
 		channels = new Channels();
 		groups = new Groups();
 		world = groups.create(Groups.World);
-		protocolFactory = new JSONProtocolFactory();
+		protocolFactory = new WebSocketProtocolFactory();
 		handler = new AppHandler();
 		dispather = new Dispatcher();
 		threadPool = Executors.newCachedThreadPool(new ThreadFactory() {

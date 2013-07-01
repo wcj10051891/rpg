@@ -43,8 +43,7 @@ public class Utils {
 	public static List<Class<?>> scanPackage(String packageName){
 		try {
 			URL resource = Object.class.getResource("/" + packageName.replace(".", "/"));
-			File file = new File(resource.toURI());
-			return listDirectory(packageName, file);
+			return listDirectory(packageName, new File(resource.toURI()));
 		} catch (Exception e) {
 			log.error("scanPackage error.", e);
 		}
