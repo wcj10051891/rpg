@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 
 import com.wcj.NioException;
 import com.wcj.channel.ChannelContext;
+import com.wcj.util.Utils;
 
 /**
  * acceptor
@@ -44,6 +45,7 @@ public class Acceptor {
 			server.bind(new InetSocketAddress(portNo));
 			server.register(this.selector, SelectionKey.OP_ACCEPT);
 		} catch (IOException e) {
+			stopSelect();
 			throw new NioException("server socket open error.", e);
 		}
 		if (starting.compareAndSet(false, true)) {
@@ -52,7 +54,7 @@ public class Acceptor {
 				try {
 					count = this.selector.select();
 				} catch (IOException e) {
-					starting.set(false);
+					stopSelect();
 					throw new NioException("select error.", e);
 				}
 				if (count <= 0)
@@ -60,38 +62,44 @@ public class Acceptor {
 
 				for (Iterator<SelectionKey> it = this.selector.selectedKeys().iterator(); it.hasNext();) {
 					SelectionKey k = it.next();
-					try {
-						it.remove();
-					} catch (Exception e) {
-						log.error("acceptor remove key error:", e);
-					}
 					if (k.isAcceptable()) {
+						SocketChannel socketChannel = null;
 						try {
-							SocketChannel socketChannel = ((ServerSocketChannel) k.channel()).accept();
+							socketChannel = ((ServerSocketChannel) k.channel()).accept();
 							socketChannel.configureBlocking(false);
-							socketChannel.socket().setTcpNoDelay(false);
+							socketChannel.socket().setTcpNoDelay(true);
+							socketChannel.socket().setKeepAlive(true);
+							socketChannel.socket().setReuseAddress(true);
 							int channelId = channelSerialNo.addAndGet(1);
 							ChannelContext channelContext = new ChannelContext(channelId, socketChannel);
 							Context.workerPool.take().register(channelContext);
 						} catch (Exception e) {
 							log.error("socket accept error:", e);
+							if(socketChannel != null){
+								try {
+									socketChannel.close();
+								} catch (IOException ex) {
+									log.warn("Failed to close a partially accepted socket.", ex);
+								}
+							}
 						}
 					}
 				}
+				this.selector.selectedKeys().clear();
 			}
 		}
+	}
+	
+	private void stopSelect(){
+		this.selector = null;
+		Utils.closeSelector(this.selector);
+		starting.compareAndSet(true, false);
 	}
 
 	public void stop() {
 		if (!starting.get())
 			return;
 
-		if (starting.compareAndSet(true, false)) {
-			try {
-				this.selector.close();
-			} catch (IOException e) {
-				throw new NioException("select close error.", e);
-			}
-		}
+		stopSelect();
 	}
 }

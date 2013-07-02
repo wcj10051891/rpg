@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import org.apache.log4j.Logger;
 
 import com.wcj.NioException;
+import com.wcj.channel.ChannelContext;
 import com.wcj.protocol.Decoder;
 import com.wcj.util.Utils;
 
@@ -13,7 +14,7 @@ public class WebSocketDecoder extends Decoder{
 	private ByteBuffer sum = ByteBuffer.allocate(1024);
 
 	@Override
-	public Object decode(byte[] message) {
+	public Object decode(ChannelContext session, byte[] message) {
 		Utils.ensureCapacity(sum, message.length);
 		sum.put(message);
 		int mark = sum.position();

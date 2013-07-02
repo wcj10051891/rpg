@@ -3,7 +3,7 @@ package com.wcj.util;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedTransferQueue;
 
 public class ProcessQueue {
 	private Queue<Runnable> tasks;
@@ -11,7 +11,7 @@ public class ProcessQueue {
 	private Future<?> processing;
 
 	public ProcessQueue(ExecutorService threadPool) {
-		this.tasks = new LinkedBlockingDeque<>();
+		this.tasks = new LinkedTransferQueue<>();
 		this.threadPool = threadPool;
 	}
 

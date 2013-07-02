@@ -1,11 +1,11 @@
-<project name="dao_gen" basedir=".">
+<project name="mydao" basedir=".">
 
 	<tstamp>
 		<format property="version" pattern="yyMMdd" />
 	</tstamp>
-	<property name="jdk.version" value="1.6" />
+	<property name="jdk.version" value="1.7" />
 	<property name="source.encoding" value="UTF-8" />
-	<property name="app.name" value="dao_gen" />
+	<property name="app.name" value="mydao" />
 	
 	<path id="classpath.project">
 		<fileset dir="lib/" />
@@ -13,7 +13,7 @@
 	</path>
 	
 	<target name="entity_gen">
-		<java classname="gen.entity.EntityGen">
+		<java classname="com.wcj.gen.entity.EntityGen">
 			<classpath>
 				<path refid="classpath.project" />
 			</classpath>
@@ -21,7 +21,7 @@
 	</target>
 	
 	<target name="dao_gen">
-		<java classname="gen.dao.DaoGen">
+		<java classname="com.wcj.gen.dao.DaoGen">
 			<classpath>
 				<path refid="classpath.project" />
 			</classpath>
@@ -31,49 +31,34 @@
 	<target name="gen_all" depends="entity_gen, dao_gen"/>
 	
 	<!--////////////////////////        Path define -->
-<!--
-	<path id="classpath.project">
-		<fileset dir="lib/" />
-		<pathelement location="target/classes" />
-	</path>
 
 	<target name="clean">
-		<delete file="target/*" />
+		<delete dir="target" />
 	</target>
 
 	<target name="compile" depends="clean">
-		<delete dir="target/classes" />
 		<mkdir dir="target/classes" />
-		<javac srcdir="src/java" destdir="target/classes" source="${jdk.version}" target="${jdk.version}" encoding="${source.encoding}" nowarn="on" debug="true">
+		<javac srcdir="src" destdir="target/classes" source="${jdk.version}" target="${jdk.version}" encoding="${source.encoding}" nowarn="on" debug="true">
 			<classpath>
 				<path refid="classpath.project" />
 			</classpath>
 		</javac>
-		<copy todir="target/classes">
-			<fileset file="src/java/quartz_jobs.xml" />
-			<fileset file="src/java/log4j.xml" />
-		</copy>
-		<mkdir dir="target/classes/com/cndw/rpg/persist" />
-		<copy todir="target/classes/com/cndw/rpg/persist">
-			<fileset dir="${persist.path}/bin/com/cndw/rpg/persist" />
-		</copy>
-		<mkdir dir="target/classes/META-INF" />
-		<copy todir="target/classes/META-INF">
-			<fileset dir="src/java/META-INF" />
-			<fileset file="MANIFEST.MF"/>
-		</copy>
 	</target>
 
 	<target name="dist" depends="compile">
-		<jar destfile="target/${app.name}.jar" manifest="MANIFEST.MF">
+		<jar destfile="target/${app.name}.jar">
 			<fileset dir="target/classes" />
 		</jar>
-		<delete file="${up.path}/${app.name}.jar" />
-		<copy todir="${up.path}">
-			<fileset file="target/${app.name}.jar" />
-		</copy>
 	</target>
-
+	
+	<target name="dist-src">
+		<jar destfile="${app.name}-src-${version}.jar">
+			<fileset dir="src">
+				<exclude name=".svn" />
+			</fileset>
+		</jar>
+	</target>
+<!--
 	<target name="copy-maven-lib-jar">
 		<delete dir="lib">
 		</delete>

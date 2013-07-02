@@ -3,6 +3,7 @@ package com.wcj.util;
 import java.io.File;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.channels.Selector;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,5 +71,13 @@ public class Utils {
 		}
 		return result;
 	}
+	
+	public static void closeSelector(Selector selector) {
+        try {
+            selector.close();
+        } catch (Exception e) {
+            log.warn("Failed to close a selector.", e);
+        }
+    }
 	
 }

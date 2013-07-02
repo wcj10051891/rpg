@@ -24,20 +24,21 @@ public class AppHandler extends Handler {
 			throw new NioException("receive message type error.");
 
 		RequestDto request = (RequestDto) message;
+		ResponseDto response = null;
 		try {
 			Object result = Context.dispather.proccess(request);
 			if (result != null && result.getClass() != void.class) {
-				ResponseDto response = new ResponseDto();
-				response.setSn(request.getSn());
+				response = new ResponseDto();
 				response.setResult(result);
-				Context.channels.get(channelId).send(response);
 			}
 		} catch (Exception e) {
-			ResponseDto response = new ResponseDto();
-			response.setSn(request.getSn());
-			response.setResult(e.getMessage());
-			Context.channels.get(channelId).send(response);
 			log.error("request process error.", e);
+			response = new ResponseDto();
+			response.setResult(e.getMessage());
+		}
+		if(response != null){
+			response.setSn(request.getSn());
+			Context.channels.get(channelId).send(response);
 		}
 	}
 

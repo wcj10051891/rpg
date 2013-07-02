@@ -1,0 +1,54 @@
+#if ($packageName != '')
+package $packageName;
+import com.wcj.dao.annotation.Dao;
+import com.wcj.dao.annotation.Sql;
+import com.wcj.dao.annotation.Arg;
+import $classFullName;
+import com.cndw.dao.jade.annotation.shard.ShardConfig;
+#end
+@DAO
+public interface ${className}Dao {
+
+	@SQL(value="insert into ${tableName}_:SKEY(#attList()) values(#attValueList())")
+	@ShardConfig(value="$shardConfigValue")
+	void insert(@Arg(value="$entityName") $className o, @Arg(value="$shardConfigValue")Integer $shardConfigValue);
+	
+	@SQL(value="delete from ${tableName}_:SKEY where id=:id")
+	@ShardConfig(value="$shardConfigValue")
+	void delete(@Arg(value="id")Long id, @Arg(value="$shardConfigValue")Integer $shardConfigValue);
+	
+	@SQL(value="update ${tableName}_:SKEY set #updateValueList() where id=:${entityName}.id")
+	@ShardConfig(value="$shardConfigValue")
+	void update(@Arg(value="$entityName") $className o, @Arg(value="$shardConfigValue")Integer $shardConfigValue);
+
+	@SQL(value="select * from ${tableName}_:SKEY where id=:id")
+	@ShardConfig(value="$shardConfigValue")
+	$className get(@Arg(value="id") Long id, @Arg(value="$shardConfigValue")Integer $shardConfigValue);
+}
+#*
+	input var:
+		properties  -> list<properties>
+		tableName	-> table name
+		packageName
+		className
+		entityName
+		shardConfigValue
+		
+*#
+#macro(attList)
+	#foreach( $property in $properties )
+`$property`#if( $velocityHasNext ),#end
+	#end
+#end
+
+#macro(attValueList)
+	#foreach( $property in $properties )
+:$entityName.$property#if( $velocityHasNext ),#end
+	#end
+#end
+
+#macro(updateValueList)
+	#foreach( $property in $properties )
+`$property`=:$entityName.$property#if( $velocityHasNext ),#end
+	#end
+#end

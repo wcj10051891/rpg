@@ -2,7 +2,6 @@ package com.wcj.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -22,12 +21,11 @@ import com.wcj.NioException;
 import com.wcj.channel.ChannelContext;
 import com.wcj.util.Utils;
 
-public class Worker {
+public class Worker implements Runnable{
 	private static final Logger log = Logger.getLogger(Worker.class);
 	private Selector selector;
 	private AtomicBoolean running = new AtomicBoolean();
-	private ExecutorService selectPool;
-	private ExecutorService workerPool;
+	private ExecutorService threadPool;
     private AtomicBoolean wakenUp = new AtomicBoolean();
     private Queue<Runnable> registerChannels = new LinkedBlockingDeque<>();
 	
@@ -37,38 +35,50 @@ public class Worker {
 		} catch (IOException e) {
 			throw new NioException("worker selector open error.", e);
 		}
-		selectPool = Executors.newFixedThreadPool(1, new ThreadFactory() {
+		threadPool = Executors.newFixedThreadPool(3, new ThreadFactory() {
 		    @Override
 		    public Thread newThread(Runnable r) {
-			return new Thread(r, "worker select thread:" + r.toString());
-		    }
-		});
-		workerPool = Executors.newFixedThreadPool(3, new ThreadFactory() {
-		    @Override
-		    public Thread newThread(Runnable r) {
-			return new Thread(r, "worker working thread:" + r.toString());
+		    	return new Thread(r, "worker working thread:" + r.toString());
 		    }
 		});
 	}
 	
 	public void register(final ChannelContext channelContext){
-			registerChannels.offer(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						channelContext.getSocket().register(selector, SelectionKey.OP_READ, channelContext.getChannelId());
-						Context.handler.onConnect(channelContext.getChannelId());
-						Context.channels.put(channelContext.getChannelId(), channelContext);
-					} catch (ClosedChannelException e) {
-						throw new NioException("socket register error.", e);
-					}
+		registerChannels.offer(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					channelContext.getSocket().register(selector, SelectionKey.OP_READ, channelContext.getChannelId());
+					Context.handler.onConnect(channelContext.getChannelId());
+					Context.channels.put(channelContext.getChannelId(), channelContext);
+				} catch (Exception e) {
+					Context.handler.onClose(channelContext.getChannelId());
+					throw new NioException("socket register error.", e);
 				}
-			});
+			}
+		});
 			
 		if(wakenUp.compareAndSet(false, true))
 			this.selector.wakeup();
 		if(running.compareAndSet(false, true)){
-		    selectPool.submit(new Sel(this));
+			threadPool.submit(this);
+		}
+	}
+
+	@Override
+	public void run() {
+		while (running.get()) {
+			wakenUp.set(false);
+			try {
+				selector.select(500);
+				if(wakenUp.get())
+					selector.wakeup();
+				
+				this.processRegister();
+				this.processSelectedKeys(selector.selectedKeys());
+			} catch (Exception e) {
+				log.warn("Unexpected exception in the selector loop.", e);
+			}
 		}
 	}
 	
@@ -79,44 +89,7 @@ public class Worker {
 		}
 	}
 
-	private static class Sel implements Runnable{
-	    
-	    private Worker worker;
-	    public Sel(Worker worker) {
-		this.worker = worker;
-	    }
-
-	    @Override
-	    public void run() {
-		while (this.worker.running.get()) {
-			this.worker.wakenUp.set(false);
-			int count = -1;
-			try {
-				count = this.worker.selector.select(500);
-				this.worker.processRegister();
-				if(this.worker.wakenUp.get())
-					this.worker.selector.wakeup();
-			} catch (Exception e) {
-				throw new NioException("worker select error.", e);
-			}
-			if (count <= 0)
-				continue;
-			this.worker.workerPool.submit(new Work(this.worker.selector.selectedKeys()));
-		}		
-	    }
-	    
-	}
-	
-	private static class Work implements Runnable{
-	    
-	    private Set<SelectionKey> selectedKeys;
-	    
-	    public Work(Set<SelectionKey> selectedKeys) {
-		this.selectedKeys = selectedKeys;
-	    }
-
-	    @Override
-	    public void run() {
+	private void processSelectedKeys(Set<SelectionKey> selectedKeys) {
 		for (Iterator<SelectionKey> it = selectedKeys.iterator(); it.hasNext();) {
 			SelectionKey k = it.next();
 			try {
@@ -161,7 +134,5 @@ public class Worker {
 				}
 			}
 		}
-	    }
-	    
 	}
 }

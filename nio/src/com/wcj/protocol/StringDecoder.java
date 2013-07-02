@@ -2,6 +2,8 @@ package com.wcj.protocol;
 
 import java.nio.charset.Charset;
 
+import com.wcj.channel.ChannelContext;
+
 public class StringDecoder extends Decoder {
 
 	private Charset charset = Charset.defaultCharset();
@@ -14,7 +16,7 @@ public class StringDecoder extends Decoder {
 	}
 
 	@Override
-	public Object decode(byte[] message) {
+	public Object decode(ChannelContext session, byte[] message) {
 		return new String(message, charset);
 	}
 

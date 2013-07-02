@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 
+import com.wcj.channel.ChannelContext;
 import com.wcj.protocol.Decoder;
 import com.wcj.util.Utils;
 
@@ -16,7 +17,7 @@ public class JSONDecoder extends Decoder {
 	private ByteBuffer sum = ByteBuffer.allocate(1024);
 
 	@Override
-	public Object decode(byte[] message) {
+	public Object decode(ChannelContext session, byte[] message) {
 		Utils.ensureCapacity(sum, message.length);
 		sum.put(message);
 		int mark = sum.position();
