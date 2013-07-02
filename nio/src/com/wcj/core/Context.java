@@ -10,8 +10,6 @@ import com.wcj.app.protocol.json.JSONProtocolFactory;
 import com.wcj.channel.ChannelGroup;
 import com.wcj.channel.Channels;
 import com.wcj.channel.Groups;
-import com.wcj.dao.core.DaoContext;
-import com.wcj.dao.core.DaoFactory;
 import com.wcj.handler.Handler;
 import com.wcj.protocol.ProtocolFactory;
 
@@ -24,7 +22,7 @@ public class Context {
 	public static Handler handler;
 	public static Dispatcher dispather;
 	public static ExecutorService threadPool;
-	public static DaoFactory daoFactory;
+//	public static DaoFactory daoFactory;
 
 	public Context() {
 		workerPool = new WorkerPool(3);
@@ -34,7 +32,7 @@ public class Context {
 		protocolFactory = new JSONProtocolFactory();
 		handler = new AppHandler();
 		dispather = new Dispatcher();
-		daoFactory = new DaoContext().daoFactory;
+//		daoFactory = new DaoContext().daoFactory;
 		threadPool = Executors.newCachedThreadPool(new ThreadFactory() {
 			@Override
 			public Thread newThread(Runnable r) {

@@ -27,7 +27,8 @@ public class Worker implements Runnable{
 	private AtomicBoolean running = new AtomicBoolean();
 	private ExecutorService threadPool;
     private AtomicBoolean wakenUp = new AtomicBoolean();
-    private Queue<Runnable> registerChannels = new LinkedBlockingDeque<>();
+    private Queue<Runnable> registerTasks = new LinkedBlockingDeque<>();
+    private Queue<Runnable> writeTasks = new LinkedBlockingDeque<>();
 	
 	public Worker() {
 		try {
@@ -44,15 +45,16 @@ public class Worker implements Runnable{
 	}
 	
 	public void register(final ChannelContext channelContext){
-		registerChannels.offer(new Runnable() {
+		registerTasks.offer(new Runnable() {
 			@Override
 			public void run() {
+				Integer channelId = channelContext.getChannelId();
 				try {
-					channelContext.getSocket().register(selector, SelectionKey.OP_READ, channelContext.getChannelId());
-					Context.handler.onConnect(channelContext.getChannelId());
-					Context.channels.put(channelContext.getChannelId(), channelContext);
+					channelContext.getSocket().register(selector, SelectionKey.OP_READ, channelId);
+					Context.handler.onConnect(channelId);
+					Context.channels.put(channelId, channelContext);
 				} catch (Exception e) {
-					Context.handler.onClose(channelContext.getChannelId());
+					Context.handler.onClose(channelId);
 					throw new NioException("socket register error.", e);
 				}
 			}
@@ -64,6 +66,10 @@ public class Worker implements Runnable{
 			threadPool.submit(this);
 		}
 	}
+	
+	public void addWriteTask(Runnable task){
+		this.writeTasks.offer(task);
+	}
 
 	@Override
 	public void run() {
@@ -74,18 +80,22 @@ public class Worker implements Runnable{
 				if(wakenUp.get())
 					selector.wakeup();
 				
-				this.processRegister();
+				this.processTaskQueue(this.registerTasks);
+				this.processTaskQueue(this.writeTasks);
 				this.processSelectedKeys(selector.selectedKeys());
+				
 			} catch (Exception e) {
 				log.warn("Unexpected exception in the selector loop.", e);
 			}
 		}
 	}
 	
-	private void processRegister(){
-		Runnable task = null;
-		while((task = this.registerChannels.poll()) != null){
-			task.run();
+	private void processTaskQueue(Queue<Runnable> queue) {
+		if(queue != null){
+			Runnable task = null;
+			while((task = queue.poll()) != null){
+				task.run();
+			}
 		}
 	}
 
@@ -123,15 +133,22 @@ public class Worker implements Runnable{
 					}
 				} catch (Exception e) {
 					log.error("read from socket error:", e);
-					try {
-						Context.handler.onClose(channelId);
-						channel.close();
-					} catch (Exception ex) {
-						log.error("channel close error:", ex);
-					} finally {
-						Context.channels.remove(channelId);
-					}
+					closeChannel(channelId);
 				}
+			}
+		}
+	}
+	
+	public void closeChannel(Integer channelId) {
+		ChannelContext channelContext = Context.channels.get(channelId);
+		if(channelContext != null) {
+			try {
+				channelContext.getSocket().close();
+			} catch (Exception ex) {
+				log.error("channel close error:", ex);
+			} finally {
+				Context.handler.onClose(channelId);
+				Context.channels.remove(channelId);
 			}
 		}
 	}

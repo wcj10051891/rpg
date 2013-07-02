@@ -11,10 +11,7 @@ public class Channels {
 	}
 
 	public ChannelContext get(Integer channelId) {
-		ChannelContext channelContext = channels.get(channelId);
-		if(channelContext == null)
-			channelContext = ChannelContext.NULL;
-		return channelContext;
+		return channels.get(channelId);
 	}
 
 	public void remove(Integer channelId) {

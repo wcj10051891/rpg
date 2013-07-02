@@ -1,31 +1,27 @@
 package com.wcj.gen.comment;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.wcj.gen.TableInfo;
 import com.wcj.gen.TableMetaData;
 import com.wcj.gen.VelocityRuner;
-import com.wcj.util.Utils;
+import com.wcj.util.Config;
 
 public class CommentGen
 {
+	private static Config cfg = new Config("daoGen.cfg");
 
-    private static final String outputPath = "src/gen/comment/comment.txt";
-
-    private static final String tplPath = "src/gen/comment/comment.vm";
-
-    private static final Set<String> includes = new HashSet<String>();
-
-    static
-    {
-        includes.add("activity_config");
-    }
+	private static final String tplPath = cfg.getString("comment.gen.template.file", "src/com/wcj/gen/comment/comment.vm");
+    private static final String outputPath = cfg.getString("comment.gen.output.file", "src/com/wcj/gen/comment/comment.txt");
+    private static final Set<String> includes = new HashSet<String>(Arrays.asList(cfg.getString("comment.gen.excludes").split(",")));
 
     public static void main(String[] args) throws Exception
     {
-        Map<String, TableMetaData> tables = Utils.getTableInfos();
+        Map<String, TableMetaData> tables = new TableInfo(cfg).get();
         if(includes.isEmpty())
         {
             Map<String, Object> ctx = new HashMap<String, Object>();

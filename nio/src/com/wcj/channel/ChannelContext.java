@@ -7,43 +7,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
 import com.wcj.core.Context;
+import com.wcj.core.Worker;
 import com.wcj.protocol.Decoder;
 import com.wcj.protocol.Encoder;
 import com.wcj.util.ProcessQueue;
 
 public class ChannelContext {
 	private static final Logger log = Logger.getLogger(ChannelContext.class);
-	public static final ChannelContext NULL = new NullChannelContext(0, null);
 	private SocketChannel socket;
+	private Worker worker;
 	private Integer channelId;
 	private Encoder encoder;
 	private Decoder decoder;
 	private ProcessQueue requests;
 	private ConcurrentHashMap<Object, Object> attributes = new ConcurrentHashMap<Object, Object>(4);
 
-	private static class NullChannelContext extends ChannelContext {
-
-		public NullChannelContext(int channelId, SocketChannel socket) {
-			super(channelId, socket);
-		}
-
-		@Override
-		public void onReceive(byte[] data) {
-		}
-
-		@Override
-		public void send(byte[] message) {
-		}
-
-		@Override
-		public void send(Object message) {
-		}
-
-	}
-
-	public ChannelContext(int channelId, SocketChannel socket) {
+	public ChannelContext(int channelId, SocketChannel socket, Worker worker) {
 		this.channelId = channelId;
 		this.socket = socket;
+		this.worker = worker;
 		this.encoder = Context.protocolFactory.getEncoder();
 		this.decoder = Context.protocolFactory.getDecoder();
 		this.requests = new ProcessQueue(Context.threadPool);
@@ -73,19 +55,21 @@ public class ChannelContext {
 	}
 
 	public void send(Object message) {
-		try {
-			socket.write(ByteBuffer.wrap(this.encoder.encode(message)));
-		} catch (Exception e) {
-			log.error("channel send message error.", e);
-		}
+		send(ChannelContext.this.encoder.encode(message));
 	}
 
-	public void send(byte[] message) {
-		try {
-			socket.write(ByteBuffer.wrap(message));
-		} catch (Exception e) {
-			log.error("channel send message error.", e);
-		}
+	public void send(final byte[] message) {
+		this.worker.addWriteTask(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					socket.write(ByteBuffer.wrap(message));
+				} catch (Exception e) {
+					log.error("channel send message error.", e);
+					worker.closeChannel(channelId);
+				}
+			}
+		});
 	}
 	
 	public Object getAttribute(Object key) {

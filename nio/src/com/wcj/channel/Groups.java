@@ -51,8 +51,11 @@ public class Groups {
 		List<Integer> excludeIds = excludeChannelIds.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(excludeChannelIds);
 		byte[] msg = Context.protocolFactory.getEncoder().encode(message);
 		for (Integer channelId : group.getChannelIds()) {
-			if (!excludeIds.contains(channelId))
-				Context.channels.get(channelId).send(msg);
+			if (!excludeIds.contains(channelId)) {
+				ChannelContext channelContext = Context.channels.get(channelId);
+				if(channelContext != null)
+					channelContext.send(msg);
+			}
 		}
 	}
 }

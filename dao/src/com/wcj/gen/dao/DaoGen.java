@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.wcj.gen.TableInfo;
 import com.wcj.gen.TableMetaData;
 import com.wcj.gen.TableNameMap;
 import com.wcj.gen.VelocityRuner;
@@ -60,7 +61,7 @@ public class DaoGen
             {
                 if(tableInfos == null)
                 {
-                    tableInfos = Utils.getTableInfos();
+                    tableInfos = new TableInfo(cfg).get();
                 }
                 TableMetaData tableMetaData = tableInfos.get(tableName);
                 if(tableMetaData != null)
@@ -91,12 +92,10 @@ public class DaoGen
         ctx.put("classFullName", classFullName);
         String outPutPath = MessageFormat.format(outputPath, className);
         VelocityRuner.run(ctx, templatePath, outPutPath);
-
-        File generated = new File(outPutPath);
-
-        String svnOldDaoFullClassName = packageName + "." + className + "Dao";
-        compareToSvnLastest(generated, svnOldDaoFullClassName);
-
+//        和svn对比
+//        File generated = new File(outPutPath);
+//        String svnOldDaoFullClassName = packageName + "." + className + "Dao";
+//        compareToSvnLastest(generated, svnOldDaoFullClassName);
         System.out.println("gen normal dao success:" + className + "->" + outPutPath);
     }
     

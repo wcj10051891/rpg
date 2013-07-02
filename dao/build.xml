@@ -12,6 +12,14 @@
 		<pathelement location="bin" />
 	</path>
 	
+	<target name="comment_gen">
+		<java classname="com.wcj.gen.comment.CommentGen">
+			<classpath>
+				<path refid="classpath.project" />
+			</classpath>
+		</java>
+	</target>
+	
 	<target name="entity_gen">
 		<java classname="com.wcj.gen.entity.EntityGen">
 			<classpath>

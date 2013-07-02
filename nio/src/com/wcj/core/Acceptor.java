@@ -71,8 +71,8 @@ public class Acceptor {
 							socketChannel.socket().setKeepAlive(true);
 							socketChannel.socket().setReuseAddress(true);
 							int channelId = channelSerialNo.addAndGet(1);
-							ChannelContext channelContext = new ChannelContext(channelId, socketChannel);
-							Context.workerPool.take().register(channelContext);
+							Worker worker = Context.workerPool.take();
+							worker.register(new ChannelContext(channelId, socketChannel, worker));
 						} catch (Exception e) {
 							log.error("socket accept error:", e);
 							if(socketChannel != null){

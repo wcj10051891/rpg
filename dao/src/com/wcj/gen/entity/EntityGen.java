@@ -8,10 +8,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.wcj.gen.TableInfo;
 import com.wcj.gen.TableMetaData;
 import com.wcj.gen.TableNameMap;
 import com.wcj.util.Config;
-import com.wcj.util.Utils;
 
 /**
     读取指定库的schema信息，找到所有表信息，字段信息，然后根据指定的表名来生成对应的Entity类，并更新表名类名映射文件。
@@ -37,7 +37,7 @@ public class EntityGen
     {
     	TableNameMap tableNameMap = new TableNameMap(cfg.getString("entity.gen.tablemapfile", "src/gen/entity/map.properties"));
         Properties map = tableNameMap.load(true);
-        Iterator<Entry<String, TableMetaData>> it = Utils.getTableInfos().entrySet().iterator();
+        Iterator<Entry<String, TableMetaData>> it = new TableInfo(cfg).get().entrySet().iterator();
         while (it.hasNext())
         {
             Entry<String, TableMetaData> en = it.next();
