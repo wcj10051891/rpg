@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 import org.apache.log4j.Logger;
 
@@ -79,5 +80,14 @@ public class Utils {
             log.warn("Failed to close a selector.", e);
         }
     }
+
 	
+	public static void processTaskQueue(Queue<Runnable> queue) {
+		if(queue != null){
+			Runnable task = null;
+			while((task = queue.poll()) != null){
+				task.run();
+			}
+		}
+	}
 }

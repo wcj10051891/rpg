@@ -9,10 +9,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Logger;
@@ -25,7 +22,6 @@ public class Worker implements Runnable{
 	private static final Logger log = Logger.getLogger(Worker.class);
 	private Selector selector;
 	private AtomicBoolean running = new AtomicBoolean();
-	private ExecutorService threadPool;
     private AtomicBoolean wakenUp = new AtomicBoolean();
     private Queue<Runnable> registerTasks = new LinkedBlockingDeque<>();
     private Queue<Runnable> writeTasks = new LinkedBlockingDeque<>();
@@ -36,12 +32,6 @@ public class Worker implements Runnable{
 		} catch (IOException e) {
 			throw new NioException("worker selector open error.", e);
 		}
-		threadPool = Executors.newFixedThreadPool(3, new ThreadFactory() {
-		    @Override
-		    public Thread newThread(Runnable r) {
-		    	return new Thread(r, "worker working thread:" + r.toString());
-		    }
-		});
 	}
 	
 	public void register(final ChannelContext channelContext){
@@ -63,7 +53,7 @@ public class Worker implements Runnable{
 		if(wakenUp.compareAndSet(false, true))
 			this.selector.wakeup();
 		if(running.compareAndSet(false, true)){
-			threadPool.submit(this);
+			Context.workersThreadPool.submit(this);
 		}
 	}
 	
@@ -80,21 +70,12 @@ public class Worker implements Runnable{
 				if(wakenUp.get())
 					selector.wakeup();
 				
-				this.processTaskQueue(this.registerTasks);
-				this.processTaskQueue(this.writeTasks);
+				Utils.processTaskQueue(this.registerTasks);
+				Utils.processTaskQueue(this.writeTasks);
 				this.processSelectedKeys(selector.selectedKeys());
 				
 			} catch (Exception e) {
 				log.warn("Unexpected exception in the selector loop.", e);
-			}
-		}
-	}
-	
-	private void processTaskQueue(Queue<Runnable> queue) {
-		if(queue != null){
-			Runnable task = null;
-			while((task = queue.poll()) != null){
-				task.run();
 			}
 		}
 	}

@@ -2,7 +2,10 @@ package com.wcj.channel;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Logger;
 
@@ -11,6 +14,7 @@ import com.wcj.core.Worker;
 import com.wcj.protocol.Decoder;
 import com.wcj.protocol.Encoder;
 import com.wcj.util.ProcessQueue;
+import com.wcj.util.Utils;
 
 public class ChannelContext {
 	private static final Logger log = Logger.getLogger(ChannelContext.class);
@@ -21,6 +25,8 @@ public class ChannelContext {
 	private Decoder decoder;
 	private ProcessQueue requests;
 	private ConcurrentHashMap<Object, Object> attributes = new ConcurrentHashMap<Object, Object>(4);
+	private Queue<Runnable> sendQueue = new LinkedTransferQueue<>();
+	private AtomicBoolean isInWriteTaskQueue = new AtomicBoolean();
 
 	public ChannelContext(int channelId, SocketChannel socket, Worker worker) {
 		this.channelId = channelId;
@@ -28,7 +34,7 @@ public class ChannelContext {
 		this.worker = worker;
 		this.encoder = Context.protocolFactory.getEncoder();
 		this.decoder = Context.protocolFactory.getDecoder();
-		this.requests = new ProcessQueue(Context.threadPool);
+		this.requests = new ProcessQueue(Context.appThreadPool);
 	}
 
 	public SocketChannel getSocket() {
@@ -59,7 +65,7 @@ public class ChannelContext {
 	}
 
 	public void send(final byte[] message) {
-		this.worker.addWriteTask(new Runnable() {
+		this.sendQueue.offer(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -70,6 +76,15 @@ public class ChannelContext {
 				}
 			}
 		});
+		if(this.isInWriteTaskQueue.compareAndSet(false, true)) {
+			this.worker.addWriteTask(new Runnable() {
+				@Override
+				public void run() {
+					isInWriteTaskQueue.set(false);
+					Utils.processTaskQueue(sendQueue);
+				}
+			});
+		}
 	}
 	
 	public Object getAttribute(Object key) {
