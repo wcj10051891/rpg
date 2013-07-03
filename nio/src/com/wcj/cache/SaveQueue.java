@@ -6,9 +6,12 @@ import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Logger;
+
 import com.wcj.core.Context;
 
 public class SaveQueue {
+	private static final Logger log = Logger.getLogger(SaveQueue.class);
 	private Map<CacheObject, Future<?>> queue = new LinkedHashMap<>();
 	
 	public void saveAsync(final CacheObject object) {
@@ -30,7 +33,7 @@ public class SaveQueue {
 					synchronized (queue) {
 						queue.remove(object);
 					}
-					object.save();
+					save0(object);
 				}
 			}, delaySeconds, TimeUnit.SECONDS));
 		}
@@ -38,24 +41,29 @@ public class SaveQueue {
 	
 	public void saveNow(CacheObject object) {
 		synchronized(queue){
-			Future<?> future = queue.get(object);
-			if(future != null) {
-				 if(!future.isDone())
-					 future.cancel(false);
-				 
-				 queue.remove(object);
-			}
+			Future<?> future = queue.remove(object);
+			if(future != null && !future.isDone())
+				 future.cancel(false);
 		}
-		object.save();
+		save0(object);
 	}
 	
 	public void saveAllNow() {
 		synchronized (queue) {
 			for(Entry<CacheObject,Future<?>> entry : queue.entrySet()) {
-				if(entry.getValue().cancel(false))
-					entry.getKey().save();
+				if(entry.getValue().cancel(true))
+					save0(entry.getKey());
 			}
 			queue.clear();
+		}
+	}
+	
+	private void save0(CacheObject object) {
+		try {
+			log.info("save object:" + object);
+			object.save();
+		} catch (Exception e) {
+			log.error("save object error:" + object, e);
 		}
 	}
 }
