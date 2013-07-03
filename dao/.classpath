@@ -15,7 +15,7 @@
 	<classpathentry kind="lib" path="lib/commons-dbutils-1.5.jar" sourcepath="C:/Users/wcj/.m2/repository/commons-dbutils/commons-dbutils/1.5/commons-dbutils-1.5-sources.jar"/>
 	<classpathentry kind="lib" path="lib/javaparser-1.0.8.jar"/>
 	<classpathentry kind="lib" path="lib/svnkit.jar"/>
-	<classpathentry kind="lib" path="lib/velocity-1.6.4.jar"/>
+	<classpathentry kind="lib" path="lib/velocity-1.6.4.jar" sourcepath="C:/Users/wangchengjie/.m2/repository/org/apache/velocity/velocity/1.6.4/velocity-1.6.4-sources.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang-2.5.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar"/>
 	<classpathentry kind="output" path="bin"/>

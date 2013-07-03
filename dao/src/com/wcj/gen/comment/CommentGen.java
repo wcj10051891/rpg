@@ -17,7 +17,7 @@ public class CommentGen
 
 	private static final String tplPath = cfg.getString("comment.gen.template.file", "src/com/wcj/gen/comment/comment.vm");
     private static final String outputPath = cfg.getString("comment.gen.output.file", "src/com/wcj/gen/comment/comment.txt");
-    private static final Set<String> includes = new HashSet<String>(Arrays.asList(cfg.getString("comment.gen.excludes").split(",")));
+    private static final Set<String> includes = new HashSet<String>(Arrays.asList(cfg.getString("comment.gen.includes").split(",")));
 
     public static void main(String[] args) throws Exception
     {

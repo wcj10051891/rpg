@@ -1,3 +1,3 @@
-    表:activity_config - 活动配置; InnoDB free: 10315776 kB
-	活动id	活动名称	活动描述	活动job配置		邏輯處理類		
+    表:cultivation_skill - 修为技能配置; InnoDB free: 10304512 kB
+	修为技能id	名称	修为技能描述	开启条件		
 

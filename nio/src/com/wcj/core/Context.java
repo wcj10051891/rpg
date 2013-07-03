@@ -2,6 +2,7 @@ package com.wcj.core;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 import com.wcj.app.handler.AppHandler;
@@ -22,6 +23,7 @@ public class Context {
 	public static Handler handler;
 	public static Dispatcher dispather;
 	public static ExecutorService appThreadPool;
+	public static ScheduledExecutorService timer;
 	public static ExecutorService workersThreadPool;
 //	public static DaoFactory daoFactory;
 
@@ -33,6 +35,7 @@ public class Context {
 		protocolFactory = new JSONProtocolFactory();
 		handler = new AppHandler();
 		dispather = new Dispatcher();
+		timer = Executors.newScheduledThreadPool(1);
 //		daoFactory = new DaoContext().daoFactory;
 		appThreadPool = Executors.newCachedThreadPool(new ThreadFactory() {
 			@Override
