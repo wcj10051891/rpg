@@ -1,4 +1,4 @@
-package com.wcj.util;
+package gen;
 
 import java.io.FileInputStream;
 import java.io.IOException;

@@ -1,14 +1,14 @@
 package com.wcj.dao.test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.wcj.dao.core.DaoContext;
 import com.wcj.dao.core.DaoFactory;
 import com.wcj.dao.core.page.PageResult;
 
 public class Main {
-	private static Logger logger = LoggerFactory.getLogger(Main.class);
+	private static Log logger = LogFactory.getLog(Main.class);
 
 	/**
 	 * @param args

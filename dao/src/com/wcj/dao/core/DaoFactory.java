@@ -39,8 +39,8 @@ import org.apache.commons.dbutils.handlers.ColumnListHandler;
 import org.apache.commons.dbutils.handlers.MapHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 import org.apache.commons.dbutils.handlers.ScalarHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.wcj.dao.annotation.Arg;
 import com.wcj.dao.annotation.Dao;
@@ -58,7 +58,7 @@ import com.wcj.util.PageUtils;
 import com.wcj.util.StringUtils;
 
 public class DaoFactory {
-	private static Logger logger = LoggerFactory.getLogger(DaoFactory.class);
+	private static Log logger = LogFactory.getLog(DaoFactory.class);
 	private static final String comma = ",";
 	private static final String argPrefix = "#";
 	private static final String quote = "'";
