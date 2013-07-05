@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.wcj.NioException;
+import com.wcj.NetException;
 import com.wcj.channel.ChannelContext;
 import com.wcj.util.Utils;
 
@@ -21,42 +21,68 @@ import com.wcj.util.Utils;
  * acceptor
  * @author wcj
  */
-public class Acceptor {
+public class Acceptor implements Runnable {
 	private static final Log log = LogFactory.getLog(Acceptor.class);
 	private Selector selector;
-	private AtomicBoolean starting = new AtomicBoolean();
-	private int portNo;
+	private AtomicBoolean running = new AtomicBoolean();
 	private AtomicInteger channelSerialNo = new AtomicInteger();
+	private int portNum;
+	private Thread acceptorThread; 
+	public Acceptor() {
+		this.portNum = NetConfig.acceptorListenPort;
+		this.acceptorThread = new Thread(this, "acceptor thread");
+	}
 	
-	public Acceptor(int portNo) {
-		this.portNo = portNo;
+	public Acceptor(int listenPort) {
+		this.portNum = listenPort;
+		this.acceptorThread = new Thread(this, "acceptor thread");
 	}
 
 	public void start() {
-		if (starting.get())
+		this.acceptorThread.start();
+	}
+	
+	private void stopSelect(){
+		if(running.compareAndSet(true, false)) {
+			this.acceptorThread.interrupt();
+			Utils.closeSelector(this.selector);
+			this.selector = null;
+		}
+	}
+
+	public void stop() {
+		if (!running.get())
+			return;
+
+		stopSelect();
+	}
+
+	@Override
+	public void run() {
+		if (running.get())
 			return;
 		try {
 			this.selector = Selector.open();
-		} catch (IOException e) {
-			throw new NioException("acceptor selector open error.", e);
+		} catch (Exception e) {
+			throw new NetException("acceptor selector open error.", e);
 		}
 		try {
 			ServerSocketChannel server = ServerSocketChannel.open();
 			server.configureBlocking(false);
-			server.bind(new InetSocketAddress(portNo));
+			server.bind(new InetSocketAddress(portNum));
 			server.register(this.selector, SelectionKey.OP_ACCEPT);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			stopSelect();
-			throw new NioException("server socket open error.", e);
+			throw new NetException("server socket open error.", e);
 		}
-		if (starting.compareAndSet(false, true)) {
-			while (starting.get()) {
+		if (running.compareAndSet(false, true)) {
+			while (running.get()) {
 				int count = -1;
 				try {
 					count = this.selector.select();
-				} catch (IOException e) {
+				} catch (Exception e) {
 					stopSelect();
-					throw new NioException("select error.", e);
+					throw new NetException("select error.", e);
 				}
 				if (count <= 0)
 					continue;
@@ -89,18 +115,5 @@ public class Acceptor {
 				this.selector.selectedKeys().clear();
 			}
 		}
-	}
-	
-	private void stopSelect(){
-		this.selector = null;
-		Utils.closeSelector(this.selector);
-		starting.compareAndSet(true, false);
-	}
-
-	public void stop() {
-		if (!starting.get())
-			return;
-
-		stopSelect();
 	}
 }

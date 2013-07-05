@@ -15,7 +15,7 @@ public class FirstController {
 	private static final Log log = LogFactory.getLog(FirstController.class);
 
 	public void firstMethod(int i, boolean b) {
-		log.debug("FirstController#firstMethod invoked.");
+		log.error("FirstController#firstMethod invoked.");
 //		List<Active> all = Context.daoFactory.get(ActiveDao.class).getAll();
 //		System.out.println("data:" + all);
 	}

@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.wcj.NioException;
+import com.wcj.NetException;
 import com.wcj.channel.ChannelContext;
 import com.wcj.protocol.Decoder;
 import com.wcj.util.Utils;
@@ -66,7 +66,7 @@ public class WebSocketDecoder extends Decoder{
 			
 			
 		}else{
-			throw new NioException("data too long.");
+			throw new NetException("data too long.");
 		}
 		return null;
 	}

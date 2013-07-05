@@ -4,21 +4,21 @@ package com.wcj;
  * nio exception
  * @author wcj
  */
-public class NioException extends RuntimeException {
+public class NetException extends RuntimeException {
     /**
      * 
      */
     private static final long serialVersionUID = -8777730564051607696L;
 
-    public NioException(String message) {
+    public NetException(String message) {
         super(message);
     }
     
-    public NioException(String message, Throwable throwable) {
+    public NetException(String message, Throwable throwable) {
         super(message, throwable);
     }
     
-    public NioException(Throwable throwable) {
+    public NetException(Throwable throwable) {
         super(throwable);
     }
 }

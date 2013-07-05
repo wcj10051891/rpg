@@ -35,7 +35,7 @@ public class ChannelContext {
 		this.worker = worker;
 		this.encoder = NetContext.protocolFactory.getEncoder();
 		this.decoder = NetContext.protocolFactory.getDecoder();
-		this.requests = new ProcessQueue(NetContext.appThreadPool);
+		this.requests = new ProcessQueue(NetContext.applicationThreadPool);
 	}
 
 	public SocketChannel getSocket() {

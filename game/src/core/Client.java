@@ -1,5 +1,6 @@
-package com.wcj.bootstrap;
+package core;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -9,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
+
+import protocol.json.JSONEncoder;
+
+import com.wcj.protocol.RequestDto;
 
 public class Client {
 	static ByteBuffer readBuffer = ByteBuffer.allocate(1024);
@@ -27,34 +32,34 @@ public class Client {
 				Scanner scanner = new Scanner(System.in);
 				while(scanner.hasNextLine()){
 					String send = scanner.nextLine();
-//					if(send.equals("1")){
-//						RequestDto request = new RequestDto();
-//						request.setClazz("com.wcj.app.modules.FirstController");
-//						request.setMethod("firstMethod");
-//						List<Object> params = new ArrayList<>();
-//						params.add(1);
-//						params.add(false);
-//						request.setParams(params);
-//						request.setSn(1);
-//						try {
-//							socket.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(request)));
-//						} catch (IOException e) {
-//							e.printStackTrace();
-//						}
-//					}else if(send.equals("all")){
-//						RequestDto request = new RequestDto();
-//						request.setClazz("com.wcj.app.modules.FirstController");
-//						request.setMethod("broadcast");
-//						List<Object> params = new ArrayList<>();
-//						params.add("牛逼的大神发话了" + System.currentTimeMillis());
-//						request.setParams(params);
-//						request.setSn(2);
-//						try {
-//							socket.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(request)));
-//						} catch (IOException e) {
-//							e.printStackTrace();
-//						}
-//					}
+					if(send.equals("1")){
+						RequestDto request = new RequestDto();
+						request.setClazz("modules.FirstController");
+						request.setMethod("firstMethod");
+						List<Object> params = new ArrayList<>();
+						params.add(1);
+						params.add(false);
+						request.setParams(params);
+						request.setSn(1);
+						try {
+							socket.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(request)));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}else if(send.equals("all")){
+						RequestDto request = new RequestDto();
+						request.setClazz("modules.FirstController");
+						request.setMethod("broadcast");
+						List<Object> params = new ArrayList<>();
+						params.add("牛逼的大神发话了" + System.currentTimeMillis());
+						request.setParams(params);
+						request.setSn(2);
+						try {
+							socket.write(ByteBuffer.wrap(JSONEncoder.INSTANCE.encode(request)));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 		}).start();

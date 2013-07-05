@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.wcj.core.NetContext;
+import core.GameContext;
 
 public class SaveQueue {
 	private static final Log log = LogFactory.getLog(SaveQueue.class);
@@ -28,7 +28,7 @@ public class SaveQueue {
 			if(delaySeconds < 0)
 				delaySeconds = 0;
 			
-			queue.put(object, NetContext.timer.schedule(new Runnable() {
+			queue.put(object, GameContext.timer.schedule(new Runnable() {
 				@Override
 				public void run() {
 					synchronized (queue) {

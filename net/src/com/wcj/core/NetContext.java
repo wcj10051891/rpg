@@ -1,52 +1,53 @@
 package com.wcj.core;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import com.wcj.NetException;
 import com.wcj.channel.ChannelGroup;
 import com.wcj.channel.Channels;
 import com.wcj.channel.Groups;
-import com.wcj.handler.Dispatcher;
 import com.wcj.handler.Handler;
 import com.wcj.protocol.ProtocolFactory;
 
-public class NetContext {
+public abstract class NetContext {
 	public static WorkerPool workerPool;
 	public static Channels channels;
 	public static Groups groups;
 	public static ChannelGroup world;
 	public static ProtocolFactory protocolFactory;
 	public static Handler handler;
-	public static Dispatcher dispather;
-	public static ExecutorService appThreadPool;
-	public static ScheduledExecutorService timer;
-	public static ExecutorService workersThreadPool;
-//	public static DaoFactory daoFactory;
+	public static ExecutorService applicationThreadPool;
 
-	public NetContext() {
-		workerPool = new WorkerPool(3);
+	static {
+		workerPool = new WorkerPool(NetConfig.workersNum);
 		channels = new Channels();
 		groups = new Groups();
 		world = groups.create(Groups.World);
-//		protocolFactory = new StringProtocolFactory();
-//		handler = new AppHandler();
-//		dispather = new Dispatcher();
-		timer = Executors.newScheduledThreadPool(1);
-//		daoFactory = new DaoContext().daoFactory;
-		appThreadPool = Executors.newCachedThreadPool(new ThreadFactory() {
-			@Override
-			public Thread newThread(Runnable r) {
-				return new Thread(r, "app logic thread:" + r.toString());
-			}
-		});
-
-		workersThreadPool = Executors.newFixedThreadPool(3, new ThreadFactory() {
-		    @Override
-		    public Thread newThread(Runnable r) {
-		    	return new Thread(r, "worker working thread:" + r.toString());
-		    }
-		});
+		try {
+			protocolFactory = (ProtocolFactory) Class.forName(NetConfig.protocalFactoryClass).newInstance();
+		} catch (Exception e) {
+			throw new NetException("'protocalFactoryClass' defined in 'config.properties' not found or cannot instantiate.", e);
+		}
+		try {
+			handler = (Handler) Class.forName(NetConfig.handlerClass).newInstance();
+		} catch (Exception e) {
+			throw new NetException("'handlerClass' defined in 'config.properties' not found or cannot instantiate.", e);
+		}
+		applicationThreadPool = new ThreadPoolExecutor(
+			NetConfig.applicationThreadPoolCoreSize, 
+			NetConfig.applicationThreadPoolMaximumSize, 
+			NetConfig.applicationThreadPoolKeepAliveSeconds, TimeUnit.SECONDS, 
+			new LinkedBlockingDeque<Runnable>(), 
+				new ThreadFactory() {
+					@Override
+					public Thread newThread(Runnable r) {
+						return new Thread(r, "app logic thread:" + r.toString());
+					}
+				}
+			);
 	}
 }

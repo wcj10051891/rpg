@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.wcj.NioException;
+import com.wcj.NetException;
 import com.wcj.channel.ChannelContext;
 import com.wcj.util.Utils;
 
@@ -31,7 +31,7 @@ public class Worker implements Runnable{
 		try {
 			this.selector = Selector.open();
 		} catch (IOException e) {
-			throw new NioException("worker selector open error.", e);
+			throw new NetException("worker selector open error.", e);
 		}
 	}
 	
@@ -46,7 +46,7 @@ public class Worker implements Runnable{
 					NetContext.channels.put(channelId, channelContext);
 				} catch (Exception e) {
 					NetContext.handler.onClose(channelId);
-					throw new NioException("socket register error.", e);
+					throw new NetException("socket register error.", e);
 				}
 			}
 		});
@@ -54,7 +54,7 @@ public class Worker implements Runnable{
 		if(wakenUp.compareAndSet(false, true))
 			this.selector.wakeup();
 		if(running.compareAndSet(false, true)){
-			NetContext.workersThreadPool.submit(this);
+			NetContext.workerPool.submit(this);
 		}
 	}
 	

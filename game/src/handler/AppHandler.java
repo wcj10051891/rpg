@@ -3,12 +3,14 @@ package handler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.wcj.NioException;
+import com.wcj.NetException;
 import com.wcj.channel.Groups;
 import com.wcj.core.NetContext;
 import com.wcj.handler.Handler;
 import com.wcj.protocol.RequestDto;
 import com.wcj.protocol.ResponseDto;
+
+import core.GameContext;
 
 public class AppHandler extends Handler {
 	private static final Log log = LogFactory.getLog(AppHandler.class);
@@ -22,12 +24,12 @@ public class AppHandler extends Handler {
 	@Override
 	public void onReceive(Object message, Integer channelId) {
 		if (!(message instanceof RequestDto))
-			throw new NioException("receive message type error.");
+			throw new NetException("receive message type error.");
 
 		RequestDto request = (RequestDto) message;
 		ResponseDto response = null;
 		try {
-			Object result = NetContext.dispather.proccess(request);
+			Object result = GameContext.dispatcher.proccess(request);
 			if (result != null && result.getClass() != void.class) {
 				response = new ResponseDto();
 				response.setResult(result);

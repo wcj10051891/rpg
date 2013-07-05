@@ -22,7 +22,7 @@ package protocol.http;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import com.wcj.NioException;
+import com.wcj.NetException;
 import protocol.http.api.HttpResponse;
 import com.wcj.protocol.Encoder;
 
@@ -31,7 +31,7 @@ public class HttpServerEncoder extends Encoder {
 	
 	public byte[] encode(Object message) {
 		if (!(message instanceof HttpResponse))
-			throw new NioException("message must be a HttpResponse type.");
+			throw new NetException("message must be a HttpResponse type.");
 		HttpResponse msg = (HttpResponse) message;
 		StringBuilder sb = new StringBuilder(msg.getStatus().line());
 
