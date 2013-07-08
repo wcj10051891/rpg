@@ -42,10 +42,10 @@ public class Worker implements Runnable{
 				Integer channelId = channelContext.getChannelId();
 				try {
 					channelContext.getSocket().register(selector, SelectionKey.OP_READ, channelId);
-					NetContext.handler.onConnect(channelId);
+					NetContext.handler.onConnect(channelContext);
 					NetContext.channels.put(channelId, channelContext);
 				} catch (Exception e) {
-					NetContext.handler.onClose(channelId);
+					NetContext.handler.onClose(channelContext);
 					throw new NetException("socket register error.", e);
 				}
 			}
@@ -129,7 +129,7 @@ public class Worker implements Runnable{
 			} catch (Exception ex) {
 				log.error("channel close error:", ex);
 			} finally {
-				NetContext.handler.onClose(channelId);
+				NetContext.handler.onClose(channelContext);
 				NetContext.channels.remove(channelId);
 			}
 		}

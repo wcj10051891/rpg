@@ -25,9 +25,9 @@ public class ChannelContext {
 	private Encoder encoder;
 	private Decoder decoder;
 	private ProcessQueue requests;
-	private ConcurrentHashMap<Object, Object> attributes = new ConcurrentHashMap<Object, Object>(4);
 	private Queue<Runnable> writeQueue = new LinkedTransferQueue<>();
 	private AtomicBoolean isInWriteTaskQueue = new AtomicBoolean();
+	public ConcurrentHashMap<Object, Object> states = new ConcurrentHashMap<Object, Object>();
 
 	public ChannelContext(int channelId, SocketChannel socket, Worker worker) {
 		this.channelId = channelId;
@@ -52,7 +52,7 @@ public class ChannelContext {
 			this.requests.submit(new Runnable() {
 				public void run() {
 					try {
-						NetContext.handler.onReceive(packet, channelId);
+						NetContext.handler.onReceive(ChannelContext.this, packet);
 					} catch (Exception e) {
 						log.error("channel receive message process error.", e);
 					}
@@ -87,74 +87,4 @@ public class ChannelContext {
 			});
 		}
 	}
-	
-	public Object getAttribute(Object key) {
-		return getAttribute(key, null);
-	}
-	
-	public Object getAttribute(Object key, Object defaultValue) {
-        if (key == null) {
-            throw new IllegalArgumentException("key");
-        }
-
-        if (defaultValue == null) {
-            return attributes.get(key);
-        }
-
-        Object object = attributes.putIfAbsent(key, defaultValue);
-
-        if (object == null) {
-            return defaultValue;
-        } else {
-            return object;
-        }
-    }
-
-    public Object setAttribute(Object key, Object value) {
-        if (key == null) {
-            throw new IllegalArgumentException("key");
-        }
-
-        if (value == null) {
-            return attributes.remove(key);
-        }
-
-        return attributes.put(key, value);
-    }
-
-    public Object setAttributeIfAbsent(Object key, Object value) {
-        if (key == null) {
-            throw new IllegalArgumentException("key");
-        }
-
-        if (value == null) {
-            return null;
-        }
-
-        return attributes.putIfAbsent(key, value);
-    }
-
-    public Object removeAttribute(Object key) {
-        if (key == null) {
-            throw new IllegalArgumentException("key");
-        }
-
-        return attributes.remove(key);
-    }
-
-    public boolean removeAttribute(Object key, Object value) {
-        if (key == null) {
-            throw new IllegalArgumentException("key");
-        }
-
-        if (value == null) {
-            return false;
-        }
-
-        try {
-            return attributes.remove(key, value);
-        } catch (NullPointerException e) {
-            return false;
-        }
-    }
 }
