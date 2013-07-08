@@ -6,9 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import modules.player.Player;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.wcj.channel.ChannelContext;
 import com.wcj.protocol.RequestDto;
 import com.wcj.util.Utils;
 
@@ -29,12 +32,15 @@ public class GameDispatcher {
 						int modifiers = method.getModifiers();
 						if (Modifier.isPublic(modifiers) && !Modifier.isAbstract(modifiers)
 								&& !Modifier.isStatic(modifiers)) {
-							Map<String, Invoker> methodMap = methods.get(clazzName);
-							if (methodMap == null) {
-								methodMap = new HashMap<>();
-								methods.put(clazzName, methodMap);
+							Class<?>[] parameterTypes = method.getParameterTypes();
+							if(parameterTypes.length > 0 && parameterTypes[0] == Player.class) {
+								Map<String, Invoker> methodMap = methods.get(clazzName);
+								if (methodMap == null) {
+									methodMap = new HashMap<>();
+									methods.put(clazzName, methodMap);
+								}
+								methodMap.put(method.getName(), new Invoker(clazz.newInstance(), method));
 							}
-							methodMap.put(method.getName(), new Invoker(clazz.newInstance(), method));
 						}
 					}
 				}
@@ -61,7 +67,7 @@ public class GameDispatcher {
 		}
 	}
 
-	public Object proccess(RequestDto request) {
+	public Object proccess(ChannelContext ctx, RequestDto request) {
 		try {
 			return this.methods.get(request.getClazz()).get(request.getMethod()).execute(request.getParams());
 		} catch (Exception e) {

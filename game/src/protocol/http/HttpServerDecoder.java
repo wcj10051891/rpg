@@ -78,16 +78,16 @@ public class HttpServerDecoder extends Decoder {
     public Object decode(ChannelContext session, byte[] data) {
     	ByteBuffer msg = ByteBuffer.wrap(data);
     	while (msg.hasRemaining()) {
-    		DecoderState state = (DecoderState)session.getAttribute(DECODER_STATE_ATT);
+    		DecoderState state = (DecoderState)session.states.get(DECODER_STATE_ATT);
             if (null == state) {
-            	session.setAttribute(DECODER_STATE_ATT, DecoderState.NEW);
-            	state = (DecoderState)session.getAttribute(DECODER_STATE_ATT);
+            	session.states.put(DECODER_STATE_ATT, DecoderState.NEW);
+            	state = (DecoderState)session.states.get(DECODER_STATE_ATT);
             }
             switch (state) {
             case HEAD:
                 log.debug("decoding HEAD");
                 // grab the stored a partial HEAD request
-                final ByteBuffer oldBuffer = (ByteBuffer)session.getAttribute(PARTIAL_HEAD_ATT);
+                final ByteBuffer oldBuffer = (ByteBuffer)session.states.get(PARTIAL_HEAD_ATT);
                 // concat the old buffer and the new incoming one
                 ByteBuffer bb = ByteBuffer.allocate(oldBuffer.remaining() + msg.remaining());
                 bb.put(oldBuffer).put(msg).flip();
@@ -103,25 +103,25 @@ public class HttpServerDecoder extends Decoder {
                     partial.put(msg);
                     partial.flip();
                     // no request decoded, we accumulate
-                    session.setAttribute(PARTIAL_HEAD_ATT, partial);
-                    session.setAttribute(DECODER_STATE_ATT, DecoderState.HEAD);
+                    session.states.put(PARTIAL_HEAD_ATT, partial);
+                    session.states.put(DECODER_STATE_ATT, DecoderState.HEAD);
                 } else {
                 	messageQueue.add(rq);
                     // is it a request with some body content ?
                     if (rq.getMethod() == HttpMethod.POST || rq.getMethod() == HttpMethod.PUT) {
                         log.debug("request with content");
-                        session.setAttribute(DECODER_STATE_ATT, DecoderState.BODY);
+                        session.states.put(DECODER_STATE_ATT, DecoderState.BODY);
 
                         final String contentLen = rq.getHeader("content-length");
 
                         if (contentLen != null) {
-                            session.setAttribute(BODY_REMAINING_BYTES, Integer.valueOf(contentLen));
+                            session.states.put(BODY_REMAINING_BYTES, Integer.valueOf(contentLen));
                         } else {
                             throw new HttpException(HttpStatus.CLIENT_ERROR_LENGTH_REQUIRED, "no content length !");
                         }
                     } else {
                         log.debug("request without content");
-                        session.setAttribute(DECODER_STATE_ATT, DecoderState.NEW);
+                        session.states.put(DECODER_STATE_ATT, DecoderState.NEW);
                         messageQueue.add(new HttpEndOfContent());
                         Object[] result = messageQueue.toArray(new Object[0]);
                         messageQueue.clear();
@@ -142,19 +142,19 @@ public class HttpServerDecoder extends Decoder {
                 }
                 msg.position(msg.limit());
                 // do we have reach end of body ?
-                int remaining = (Integer) session.getAttribute(BODY_REMAINING_BYTES);
+                int remaining = (Integer) session.states.get(BODY_REMAINING_BYTES);
                 remaining -= chunkSize;
 
                 if (remaining <= 0) {
                     log.debug("end of HTTP body");
-                    session.setAttribute(DECODER_STATE_ATT, DecoderState.NEW);
-                    session.removeAttribute(BODY_REMAINING_BYTES);
+                    session.states.put(DECODER_STATE_ATT, DecoderState.NEW);
+                    session.states.remove(BODY_REMAINING_BYTES);
                     messageQueue.add(new HttpEndOfContent());
                     Object[] result = messageQueue.toArray(new Object[0]);
                     messageQueue.clear();
                     return result;
                 } else {
-                    session.setAttribute(BODY_REMAINING_BYTES, Integer.valueOf(remaining));
+                    session.states.put(BODY_REMAINING_BYTES, Integer.valueOf(remaining));
                 }
 
                 break;
