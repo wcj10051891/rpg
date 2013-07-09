@@ -3,6 +3,7 @@ package handler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,8 +33,7 @@ public class GameDispatcher {
 						int modifiers = method.getModifiers();
 						if (Modifier.isPublic(modifiers) && !Modifier.isAbstract(modifiers)
 								&& !Modifier.isStatic(modifiers)) {
-							Class<?>[] parameterTypes = method.getParameterTypes();
-							if(parameterTypes.length > 0 && parameterTypes[0] == Player.class) {
+							if (method.getParameterTypes().length > 0) {
 								Map<String, Invoker> methodMap = methods.get(clazzName);
 								if (methodMap == null) {
 									methodMap = new HashMap<>();
@@ -67,12 +67,14 @@ public class GameDispatcher {
 		}
 	}
 
-	public Object proccess(ChannelContext ctx, RequestDto request) {
-		try {
-			return this.methods.get(request.getClazz()).get(request.getMethod()).execute(request.getParams());
-		} catch (Exception e) {
-			log.error("dispatcher proccess request error.", e);
-		}
-		return null;
+	public Object proccess(ChannelContext ctx, RequestDto request) throws Exception {
+		Invoker invoker = this.methods.get(request.getClazz()).get(request.getMethod());
+		if (invoker.method.getParameterTypes()[0] == Player.class && ctx.states.containsKey(Player.Channel_Context_Key)) {
+			List<Object> params = new LinkedList<>();
+			params.add(ctx.states.get(Player.Channel_Context_Key));
+			params.addAll(request.getParams());
+			return invoker.execute(params);
+		} else
+			return invoker.execute(request.getParams());
 	}
 }

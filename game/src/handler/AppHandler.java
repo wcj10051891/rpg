@@ -1,11 +1,12 @@
 package handler;
 
+import modules.player.Player;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.wcj.NetException;
 import com.wcj.channel.ChannelContext;
-import com.wcj.core.NetContext;
 import com.wcj.handler.Handler;
 import com.wcj.protocol.RequestDto;
 import com.wcj.protocol.ResponseDto;
@@ -42,13 +43,15 @@ public class AppHandler extends Handler {
 		}
 		if(response != null){
 			response.setSn(request.getSn());
-			NetContext.channels.get(ctx.getChannelId()).send(response);
+			ctx.send(response);
 		}
 	}
 
 	@Override
 	public void onClose(ChannelContext ctx) {
-//		NetContext.channels.get(ctx.getChannelId()).getAttribute(key);
+		Player player = (Player)ctx.states.get(Player.Channel_Context_Key);
+		if(player != null)
+			player.onLogOut();
 	}
 
 }
