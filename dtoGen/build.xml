@@ -1,0 +1,58 @@
+<project name="dtoGen" basedir=".">
+	<property name="gen-src-dir" value="target/generated/" />
+	<property name="work.src" value="src" />
+	<property name="work.classes" value="target/classes" />
+
+	<target name="clean">
+		<delete dir="target" />
+		<mkdir dir="target/classes" />
+		<mkdir dir="target/generated/" />
+	</target>
+
+	<path id="classpath">
+		<fileset dir="lib" />
+		<pathelement location="${work.classes}" />
+	</path>
+
+	<target name="compile" description="Compiles all source files" depends="clean">
+		<javac srcdir="${work.src}" destdir="${work.classes}" classpathref="classpath" debug="true" />
+		<copy todir="target/classes">
+			<fileset dir="src" includes="**/*.vm" />
+		</copy>
+	</target>
+
+	<target name="generate" depends="compile">
+		<path id="xdoclet.task.classpath">
+			<path refid="classpath" />
+		</path>
+
+		<mkdir dir="${gen-src-dir}" />
+
+		<!-- Define xdoclet task -->
+		<taskdef name="xdoclet_ctrl" classname="org.xdoclet.ant.XDocletTask" classpathref="xdoclet.task.classpath" />
+
+		<xdoclet_ctrl>
+			<!-- specifies the file-set that carry xdoclet2 tags-->
+			<fileset dir="..\xianhun\src">
+				<include name="com/cndw/xianhun/mvc/controller/*Ctrl.java" />
+				<include name="com/cndw/xianhun/mvc/controller/*/*Ctrl.java" />
+			</fileset>
+
+			<!-- invoke the plugin -->
+			<component classname="com.cndw.dwcoder.controller.As3JavaRpcServicePlugin" destdir="${gen-src-dir}" />
+		</xdoclet_ctrl>
+
+		<!-- Define xdoclet task -->
+		<taskdef name="xdoclet_dto" classname="org.xdoclet.ant.XDocletTask" classpathref="xdoclet.task.classpath" />
+		<xdoclet_dto>
+			<!-- specifies the file-set that carry xdoclet2 tags-->
+			<fileset dir="..\xianhun\src">
+				<include name="com/cndw/xianhun/mvc/dto/*Dto.java" />
+				<include name="com/cndw/xianhun/mvc/dto/*/*Dto.java" />
+			</fileset>
+
+			<!-- invoke the plugin -->
+			<component classname="com.cndw.dwcoder.view.As3JavaDtoPlugin" destdir="${gen-src-dir}" />
+		</xdoclet_dto>
+	</target>
+</project>
