@@ -1,6 +1,5 @@
 #if ($packageName != '')
 package $packageName;
-import com.cndw.dao.jade.Identity;
 import com.wcj.dao.annotation.Dao;
 import com.wcj.dao.annotation.Sql;
 import com.wcj.dao.annotation.Arg;
@@ -11,7 +10,7 @@ import $classFullName;
 public interface ${className}Dao {
 	
 	@Sql(value="insert into $tableName(#attList()) values(#attValueList())")
-	Identity insert(@Arg(value="$entityName") $className o);
+	Integer insert(@Arg(value="$entityName") $className o);
 	
 	@Sql(value="delete from $tableName where id=:id")
 	void delete(@Arg(value="id")Integer id);

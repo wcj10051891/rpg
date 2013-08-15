@@ -9,37 +9,8 @@
 	
 	<path id="classpath.project">
 		<fileset dir="lib/" />
-		<pathelement location="bin" />
 	</path>
 	
-	<target name="comment_gen">
-		<java classname="com.wcj.gen.comment.CommentGen">
-			<classpath>
-				<path refid="classpath.project" />
-			</classpath>
-		</java>
-	</target>
-	
-	<target name="entity_gen">
-		<java classname="com.wcj.gen.entity.EntityGen">
-			<classpath>
-				<path refid="classpath.project" />
-			</classpath>
-		</java>
-	</target>
-	
-	<target name="dao_gen">
-		<java classname="com.wcj.gen.dao.DaoGen">
-			<classpath>
-				<path refid="classpath.project" />
-			</classpath>
-		</java>
-	</target>
-	
-	<target name="gen_all" depends="entity_gen, dao_gen"/>
-	
-	<!--////////////////////////        Path define -->
-
 	<target name="clean">
 		<delete dir="target" />
 	</target>

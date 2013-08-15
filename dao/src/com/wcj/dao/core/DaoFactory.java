@@ -43,6 +43,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.wcj.dao.annotation.Arg;
+import com.wcj.dao.annotation.BatchInsert;
 import com.wcj.dao.annotation.Dao;
 import com.wcj.dao.annotation.Page;
 import com.wcj.dao.annotation.Sql;
@@ -57,10 +58,61 @@ import com.wcj.util.BeanUtils;
 import com.wcj.util.PageUtils;
 import com.wcj.util.StringUtils;
 
+/**
+ * Dao接口实例工厂，依赖apache Commons DBUtils。
+ * <br>首先定义Dao接口，用@Dao标注，然后在接口中定义操作方法，用@Sql指定执行的sql语句（@Sql标记方法执定或者@Sql标记方法的String类型的参数来运行时动态执定sql），
+ * 支持select，insert，delete，update语句。</br>
+ * <br>example：</br>
+	<pre>插入语句  @Sql(value="insert into active(`id`,`name`) values(:active.id,	:active.name)")
+	Integer insert(@Arg(value="active") Active o);如果有自增字段，则返回自增字段值，否则返回影响行数</pre>
+
+	<pre>批量插入 	@Sql(value="insert into active(`id`,`name`) values(:active.id,:active.name)")
+	void insert(@BatchInsert("active") List&lt;Active&gt; o);</pre>
+	
+	<pre>返回Map结果，结果必须为单行@Sql("select * from active where id=:id")
+	Map&lt;String, Object&gt; getById(@Arg("id")Integer id);</pre>
+
+	<pre>返回JavaBean结果，结果必须为单行@Sql@Sql("select * from active where id=:id")
+    Active getAciveById(@Arg("id")Integer id);</pre>
+    
+	<pre>查询标量结果@Sql("select count(*) from active")
+    Long getCount();</pre>
+    
+    <pre>每一列转换成bean@Sql("select * from active")
+    List&lt;Active&gt; getBeanList();</pre>
+    
+    <pre>每一列为一个Map，包括列名和值@Sql("select * from active")
+    List&lt;Map&gt; getAll();</pre>
+    
+    <pre>返回想要得类型的查询@Sql("select id from active")
+    public List&lt;Integer&gt; getIds();</pre>
+    
+    <pre>返回想要得类型的查询@Sql("select description from active")
+    public List&lt;String&gt; getDescs();</pre>
+    
+    <pre>in查询@Sql("select * from active where id in(:ids)")
+    List&lt;Map&lt;String, Object&gt;&gt; getByIds(@Arg("ids")int[] ids);</pre>
+    
+    <pre>更新	@Sql("update active set description=:des where id=:id")
+    public void update(@Arg("id") Integer id, @Arg("des")String des);</pre>
+    
+    <pre>删除	@Sql("delete from active where id=:id")
+    public void delete(@Arg("id") Integer id);</pre>
+    
+    <pre>分页查询，返回Active List	@Sql("select * from active")
+    public PageResult getPage(@Page(Active.class) PageResult page);</pre>
+    
+    <pre>分页查询，返回StringL类型的List    @Sql("select name from active where name in(:names)")
+    public PageResult getPage2(@Page(String.class) PageResult page, @Arg("names")List&lt;String&gt; names);</pre>
+    
+    <pre>动态指定sql
+	public PageResult getPage3(@Page(Map.class) PageResult page, @Sql String sql, @Arg("id")Integer id);</pre>
+ *	@author wcj
+ */
 public class DaoFactory {
 	private static Log logger = LogFactory.getLog(DaoFactory.class);
 	private static final String comma = ",";
-	private static final String argPrefix = "#";
+	private static final String argPrefix = ":";
 	private static final String quote = "'";
 
 	private static String dateFormat = "yyyy-MM-dd hh:mm:ss";
@@ -124,8 +176,8 @@ public class DaoFactory {
 				if(currentDialect == null){
 					int databaseMajorVersion = 0;
 					try {
-						Method gdbmvMethod = DatabaseMetaData.class.getMethod("getDatabaseMajorVersion", null);
-						databaseMajorVersion = ( (Integer) gdbmvMethod.invoke(meta, null) ).intValue();
+						Method gdbmvMethod = DatabaseMetaData.class.getMethod("getDatabaseMajorVersion");
+						databaseMajorVersion = ( (Integer) gdbmvMethod.invoke(meta) ).intValue();
 					}
 					catch (Exception nsme) {
 					}
@@ -144,22 +196,39 @@ public class DaoFactory {
 	}
 
 	private InvocationHandler handler = new InvocationHandler() {
+		@SuppressWarnings("rawtypes")
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-			if (!method.isAnnotationPresent(Sql.class))
-				throw new DaoException("dao method must annotationed by Sql.");
+			String sql = null;
+			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+			if (method.isAnnotationPresent(Sql.class))
+				sql = method.getAnnotation(Sql.class).value().trim();
+			else {
+				for (int i = 0; i < parameterAnnotations.length; i++) {
+					Annotation[] anno = parameterAnnotations[i];
+					if (anno.length > 0)
+						if(anno[0].annotationType() == Sql.class) {
+							if(!(args[i] instanceof String))
+								throw new DaoException("@Sql annotationed method parameter must instanceof String.");
+							sql = args[i].toString().trim();
+							break;
+						}
+				}
+			}
+			if(!StringUtils.hasText(sql))
+				throw new DaoException("sql not found or empty value, dao method must annotationed by @Sql, or provide @Sql method parameter.");
 
-			String sql = method.getAnnotation(Sql.class).value().trim();
-
-			if (!(sql.startsWith(select) || sql.startsWith(insert) || sql.startsWith(delete) || sql.startsWith(update)))
-				throw new DaoException("unsupport sql operation.");
-
-			if (sql.startsWith(select) && method.getReturnType() == void.class)
+			boolean isSelect = sql.startsWith(select);
+			if (isSelect && method.getReturnType() == void.class)
 				return null;
 
-			Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+			boolean isInsert = sql.startsWith(insert);
+			if (!(isSelect || isInsert || sql.startsWith(delete) || sql.startsWith(update)))
+				throw new DaoException("unsupported sql operation.");
+			
 			PageResult pageResult = null;
 			Class<?> pageReturnType = null;
+			boolean isBatchInsert = false;
 			for (int i = 0; i < parameterAnnotations.length; i++) {
 				Annotation[] anno = parameterAnnotations[i];
 				if (anno.length > 0)
@@ -174,14 +243,47 @@ public class DaoFactory {
 							matcher.appendTail(sqlTemp);
 							sql = sqlTemp.toString();
 						}
-					}else if (anno[0].annotationType() == Page.class && args[i] instanceof PageResult) {
+					} else if (anno[0].annotationType() == Page.class) {
+						if(!isSelect)
+							throw new DaoException("@Page only support select operation.");
+						if(!(args[i] instanceof PageResult))
+							throw new DaoException("@Page annotationed param must instanceof PageResult.");
 					    pageReturnType = ((Page) anno[0]).value();
 					    pageResult = (PageResult)args[i];
+					} else if (isInsert && anno[0].annotationType() == BatchInsert.class) {
+						if(!isInsert)
+							throw new DaoException("@BatchInsert only support insert operation.");
+						if(!(args[i] instanceof Collection))
+							throw new DaoException("@BatchInsert annotationed param must instanceof Collection.");
+						
+						isBatchInsert = true;
+						sql = sql.replace(";", "");
+						String argName = ((BatchInsert) anno[0]).value();
+						int index = sql.indexOf(" values");
+						String valueSql = sql.substring(index + 7);
+						sql = sql.substring(0, index);
+						List<String> valueSqls = new ArrayList<>();
+						String temp;
+						for(Object v : (Collection)args[i]) {
+							temp = valueSql;
+							for (Entry<String, String> entry : convert(argName, v).entrySet()) {
+								String key = entry.getKey();
+								StringBuffer sqlTemp = new StringBuffer();
+								Matcher matcher = Pattern.compile(argPrefix + key).matcher(temp);
+								while (matcher.find())
+									matcher.appendReplacement(sqlTemp, entry.getValue());
+
+								matcher.appendTail(sqlTemp);
+								temp = sqlTemp.toString();
+							}
+							valueSqls.add(temp);
+						}
+						sql += " values" + StringUtils.join(valueSqls, ",");
 					}
 			}
 			local.remove();
-//			logger.debug(sql);
-			if (sql.startsWith(select)) {
+			logger.debug(sql);
+			if (isSelect) {
 				//process page
 				if(pageResult != null && PageResult.class.isAssignableFrom(method.getReturnType())){
 					Long total = (Long) jdbc.query(PageUtils.getTotalSql(sql), scalarHandler);
@@ -196,38 +298,37 @@ public class DaoFactory {
 					String limitSql = currentDialect.getLimitString(sql, pageResult.getStart(), pageResult.getPageSize());
 					if(StringUtils.hasText(limitSql)){
 						if (pageReturnType == Map.class)// List<Map<String, Object>
-						    pageResult.setData((List) jdbc.query(limitSql, mapListHandler));
+						    pageResult.setData((List<?>) jdbc.query(limitSql, mapListHandler));
 						else if (buildInTypes.containsKey(pageReturnType))// primitive list
-						    pageResult.setData((List) jdbc.query(limitSql, columnListHandler));
+						    pageResult.setData((List<?>) jdbc.query(limitSql, columnListHandler));
 						else// bean list
-						    pageResult.setData((List) jdbc.query(limitSql, getBeanListHandler(pageReturnType)));
+						    pageResult.setData((List<?>) jdbc.query(limitSql, getBeanListHandler(pageReturnType)));
 						return pageResult;
 					}else{
 					    final PageResult result = pageResult;
 					    final Class<?> pageReturnTypeClass = pageReturnType;
 					    return jdbc.query(sql, new ResultSetHandler<PageResult>(){
-
-						@Override
-						public PageResult handle(ResultSet rs) throws SQLException {
-						    
-						    if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
-							rs.absolute(result.getStart() + 1);
-						    } else {
-							for (int i = 0; i < result.getStart(); i++) rs.next();
-						    }
-						    int limit = result.getPageSize();
-						    List rows = new ArrayList(); 
-						    for (int count = 0; rs.next() && count < limit; count++) {
-							if (pageReturnTypeClass == Map.class)// List<Map<String, Object>
-							    rows.add(basicRowProcessor.toMap(rs));
-							else if (buildInTypes.containsKey(pageReturnTypeClass))// primitive list
-							    rows.add(basicRowProcessor.toArray(rs)[0]);
-							else// bean list
-							    rows.add(basicRowProcessor.toBean(rs, pageReturnTypeClass));
-						    }
-						    result.setData(rows);
-						    return result;
-						}
+							@Override
+							public PageResult handle(ResultSet rs) throws SQLException {
+							    if (rs.getType() != ResultSet.TYPE_FORWARD_ONLY) {
+							    	rs.absolute(result.getStart() + 1);
+							    } else {
+							    	for (int i = 0; i < result.getStart(); i++)
+							    		rs.next();
+							    }
+							    int limit = result.getPageSize();
+							    List<Object> rows = new ArrayList<Object>(); 
+							    for (int count = 0; rs.next() && count < limit; count++) {
+									if (pageReturnTypeClass == Map.class)// List<Map<String, Object>
+									    rows.add(basicRowProcessor.toMap(rs));
+									else if (buildInTypes.containsKey(pageReturnTypeClass))// primitive list
+									    rows.add(basicRowProcessor.toArray(rs)[0]);
+									else// bean list
+									    rows.add(basicRowProcessor.toBean(rs, pageReturnTypeClass));
+							    }
+							    result.setData(rows);
+							    return result;
+							}
 					    });
 					}
 				}else{
@@ -243,13 +344,13 @@ public class DaoFactory {
 						c = buildInTypes.get(c);
 
 					if (Number.class.isAssignableFrom(c)) {
-						if (sql.startsWith(insert)) {
+						if (isInsert && !isBatchInsert) {
 							Connection conn = jdbc.getDataSource().getConnection();
 							PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 							try {
-								stmt.executeUpdate();
+								int effectRowCount = stmt.executeUpdate();
 								ResultSet keys = stmt.getGeneratedKeys();
-								Integer result = keys.next() ? keys.getInt(1) : null;
+								Integer result = keys.next() ? keys.getInt(1) : effectRowCount;
 								DbUtils.close(keys);
 								return result;
 							} catch (Exception e) {
@@ -333,25 +434,10 @@ public class DaoFactory {
 			return Collections.EMPTY_MAP;
 
 		Map<String, String> result = new LinkedHashMap<String, String>();
-		if (value == null) {
-			result.put(key, "null");
-			return result;
-		} else if (value instanceof Number || value instanceof Boolean) {
+		if (value == null || value instanceof Number || value instanceof Boolean) {
 			result.put(key, String.valueOf(value));
-			return result;
-		}
-		if (value.getClass().isArray()) {
-			int length = Array.getLength(value);
-			Object[] o = new Object[length];
-			for (int i = 0; i < length; i++)
-				o[i] = Array.get(value, i);
-			result.put(key, StringUtils.join(o, comma));
-		} else if (value instanceof Collection) {
-			result.put(key, StringUtils.join((Collection<?>) value, comma));
-		} else if (value instanceof String) {
-			result.put(key, quote + String.valueOf(value) + quote);
-		} else if (value instanceof Date) {
-			result.put(key, quote + new SimpleDateFormat(dateFormat) .format((Date) value) + quote);
+		} else if (value instanceof String || value.getClass().isArray() || value instanceof Collection || value instanceof Date) {
+			result.put(key, toString(value));
 		} else {
 			checkDeadLoop(value);
 			if (value instanceof Map) {
@@ -369,6 +455,27 @@ public class DaoFactory {
 			}
 		}
 		return result;
+	}
+	
+	private static String toString(Object value) {
+		if (value instanceof String) {
+			return quote + String.valueOf(value) + quote;
+		} else if (value instanceof Date) {
+			return quote + new SimpleDateFormat(dateFormat) .format((Date) value) + quote;
+		} else if (value instanceof Collection) {
+			Collection<?> values = (Collection<?>)value;
+			List<String> strs = new ArrayList<>(values.size()); 
+			for(Object v : values) 
+				strs.add(toString(v));
+			return StringUtils.join(strs, comma); 
+		} else if (value.getClass().isArray()) {
+			int length = Array.getLength(value);
+			String[] strs = new String[length];
+			for (int i = 0; i < length; i++)
+				strs[i] = toString(Array.get(value, i));
+			return StringUtils.join(strs, comma);
+		}
+		return String.valueOf(value);
 	}
 
 	@SuppressWarnings("unchecked")

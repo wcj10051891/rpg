@@ -94,7 +94,7 @@ public class Acceptor implements Runnable {
 						try {
 							socketChannel = ((ServerSocketChannel) k.channel()).accept();
 							socketChannel.configureBlocking(false);
-							socketChannel.socket().setTcpNoDelay(true);
+							socketChannel.socket().setTcpNoDelay(false);
 							socketChannel.socket().setKeepAlive(true);
 							socketChannel.socket().setReuseAddress(true);
 							int channelId = channelSerialNo.addAndGet(1);

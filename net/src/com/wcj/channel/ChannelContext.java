@@ -2,10 +2,9 @@ package com.wcj.channel;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedTransferQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,8 +24,8 @@ public class ChannelContext {
 	private Encoder encoder;
 	private Decoder decoder;
 	private ProcessQueue requests;
-	private Queue<Runnable> writeQueue = new LinkedTransferQueue<>();
-	private AtomicBoolean isInWriteTaskQueue = new AtomicBoolean();
+	private Queue<Runnable> writeQueue = new LinkedList<Runnable>();
+	private boolean isInWriteTaskQueue;
 	public ConcurrentHashMap<Object, Object> states = new ConcurrentHashMap<Object, Object>();
 
 	public ChannelContext(int channelId, SocketChannel socket, Worker worker) {
@@ -66,25 +65,29 @@ public class ChannelContext {
 	}
 
 	public void send(final byte[] message) {
-		this.writeQueue.offer(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					socket.write(ByteBuffer.wrap(message));
-				} catch (Exception e) {
-					log.error("channel send message error.", e);
-					worker.closeChannel(channelId);
-				}
-			}
-		});
-		if(this.isInWriteTaskQueue.compareAndSet(false, true)) {
-			this.worker.addWriteTask(new Runnable() {
+		synchronized (writeQueue) {
+			writeQueue.offer(new Runnable() {
 				@Override
 				public void run() {
-					isInWriteTaskQueue.set(false);
-					Utils.processTaskQueue(writeQueue);
+					try {
+						socket.write(ByteBuffer.wrap(message));
+					} catch (Exception e) {
+						log.error("channel send message error.", e);
+						worker.closeChannel(channelId);
+					}
 				}
 			});
+			if (!isInWriteTaskQueue) {
+				this.worker.addWriteTask(new Runnable() {
+					@Override
+					public void run() {
+						synchronized (writeQueue) {
+							Utils.processTaskQueue(writeQueue);
+							isInWriteTaskQueue = false;
+						}
+					}
+				});
+			}
 		}
 	}
 }

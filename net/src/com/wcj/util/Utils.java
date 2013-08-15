@@ -33,7 +33,7 @@ public class Utils {
 				return src;
 			}
 			int oldPosition = src.position();
-			ByteBuffer newBuffer = ByteBuffer.allocate((int)(src.capacity() * 1.5f));
+			ByteBuffer newBuffer = ByteBuffer.allocate(Math.max(remain, (int)(src.capacity() * 1.5f)));
 			src.position(0);
 			newBuffer.put(src);
 			newBuffer.position(oldPosition);

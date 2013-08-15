@@ -7,18 +7,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 标记dao类中方法的参数，指明@Sql中的待替换的参数别名
- * <br>example:  用alias做别名，生成sql语句会取用@Arg标记的对象上的字段值来替换</br> 
- * <pre>@Sql(value="insert into table(`id`,`name`) values(:alias.id,:alias.name)")
- * Integer insert(@Arg(value="alias") Active o);</pre>
+ * 批量插入数据，dao类的方法，传入Collection&lt;Entity&gt;，会为每个Entity生成一组insert语句的values值，最终合并成一条sql执行。
  * @author wcj
  */
 @Target({ ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Arg {
+public @interface BatchInsert {
 	/**
 	 * 待替换参数别名
+	 * @see com.wcj.dao.annotation.Arg
 	 * @return
 	 */
 	String value();

@@ -1,6 +1,5 @@
 package com.wcj.util;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -91,7 +90,7 @@ public abstract class RandomUtils {
 	 * @param find		待查找的值
 	 * @return
 	 */
-	public static Integer[] findRange(Collection<Integer[]> ranges, Integer find){
+	private static Integer[] findRange(Collection<Integer[]> ranges, Integer find){
 		for(Iterator<Integer[]> it = ranges.iterator();it.hasNext();){
 			Integer[] range = it.next();
 			if(find >= range[0] && find <= range[1]){
@@ -100,32 +99,7 @@ public abstract class RandomUtils {
 		}
 		return null;
 	}
-	
-	/**
-	 * 比例区间与区间值的对应
-	 * 如：
-	 * 	40：0
-	 * 	40：1
-	 * 	20：2
-	 * 生成：
-	 * 	1-40:0
-	 * 	41-80:1
-	 * 	81-100:2
-	 * @param rates		区间端点数组
-	 * @param values	区间对应值
-	 * @return
-	 */
-	public static <V> Map<Integer[], V> getRangeMap(int[] rates, V[] values){
-		Map<Integer[], V> ranges = new HashMap<Integer[], V>();
-		int last = 0;
-		for(int i = 0; i < rates.length; i++){
-			int vv = rates[i];
-			ranges.put(new Integer[]{last + 1, vv + last}, values[i]);
-			last = vv + last;
-		}
-		return ranges;
-	}
-	
+
 	public static <V> RangeData<V> getRangeMap(Map<V, Integer> value2Rates){
         return getRangeMap(value2Rates.values(), value2Rates.keySet());
     }
@@ -135,7 +109,7 @@ public abstract class RandomUtils {
         return (RangeData<V>) getRangeMap(Arrays.asList(rates.toArray(new Integer[rates.size()])), Arrays.asList(values.toArray()));
     }
     
-    public static <V> RangeData<V> getRangeMap(List<Integer> rates, List<V> values){
+    private static <V> RangeData<V> getRangeMap(List<Integer> rates, List<V> values){
         Map<Integer[], V> ranges = new HashMap<Integer[], V>();
         int last = 0;
         for(int i = 0; i < rates.size(); i++){
@@ -174,17 +148,6 @@ public abstract class RandomUtils {
             return rt;
 	    }
 	}
-	
-	/**
-	 * 随机挑选出的区间对应的值
-	 * @param <V>
-	 * @param ranges	区间范围表
-	 * @param random	随机数
-	 * @return			值
-	 */
-	public static <V> V findRange(Map<Integer[], V> ranges, int random){
-		return ranges.get(RandomUtils.findRange(ranges.keySet(), random));
-	}
     
     /**
      * 随机挑选出的区间对应的值
@@ -193,8 +156,7 @@ public abstract class RandomUtils {
      * @return V
      */
     public static <V> V findRange(RangeData<V> ranges){
-
-        return ranges.data.get(RandomUtils.findRange(ranges.data.keySet(), RandomUtils.nextRandomInt(1, ranges.max)));
+        return ranges.data.get(findRange(ranges.data.keySet(), RandomUtils.nextRandomInt(1, ranges.max)));
     }
 
     /**
@@ -272,18 +234,5 @@ public abstract class RandomUtils {
             }
         }
         return index;
-    }
-    public static void main(String[] args){
-        Map<Integer, Integer> d = new HashMap<Integer, Integer>();
-        d.put(1, 1);
-        d.put(5, 1);
-        d.put(6, 1);
-        d.put(9, 1);
-        d.put(11, 1);
-        d.put(21, 1);
-        RangeData<Integer> r = getRangeMap(new ArrayList<Integer>(d.keySet()), new ArrayList<Integer>(d.values()));
-        
-        System.out.println(r.data);
-        System.out.println(r.max);
     }
 }

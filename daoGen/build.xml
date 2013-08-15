@@ -13,7 +13,7 @@
 	</path>
 	
 	<target name="comment_gen">
-		<java classname="com.wcj.gen.comment.CommentGen">
+		<java classname="gen.comment.CommentGen">
 			<classpath>
 				<path refid="classpath.project" />
 			</classpath>
@@ -21,7 +21,7 @@
 	</target>
 	
 	<target name="entity_gen">
-		<java classname="com.wcj.gen.entity.EntityGen">
+		<java classname="gen.entity.EntityGen">
 			<classpath>
 				<path refid="classpath.project" />
 			</classpath>
@@ -29,7 +29,7 @@
 	</target>
 	
 	<target name="dao_gen">
-		<java classname="com.wcj.gen.dao.DaoGen">
+		<java classname="gen.dao.DaoGen">
 			<classpath>
 				<path refid="classpath.project" />
 			</classpath>

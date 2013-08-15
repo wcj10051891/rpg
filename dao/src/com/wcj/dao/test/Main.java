@@ -1,5 +1,7 @@
 package com.wcj.dao.test;
 
+import java.util.Arrays;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -8,41 +10,32 @@ import com.wcj.dao.core.DaoFactory;
 import com.wcj.dao.core.page.PageResult;
 
 public class Main {
-	private static Log logger = LogFactory.getLog(Main.class);
+	private static Log log = LogFactory.getLog(Main.class);
 
 	/**
 	 * @param args
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		DaoFactory daoFactory = new DaoContext().daoFactory;
-		ActiveDao activeDao = daoFactory.get(ActiveDao.class);
-//		logger.debug(activeDao.getAciveById(1).toString());
-//		logger.debug(activeDao.getAciveById(1).toString());
-//		logger.debug(activeDao.getAciveById(1).toString());
-//		logger.debug(activeDao.getAciveById(1).toString());
-//		logger.debug(activeDao.getAll().toString());
-//		logger.debug(activeDao.getBeanList().toString());
-//		logger.debug(activeDao.getById(1).toString());
-//		logger.debug(activeDao.getByIds(new int[] { 1, 2, 3, 4, 5 }).toString());
-//		logger.debug(activeDao.getCount().toString());
-//		logger.debug(activeDao.getDescs().toString());
-//		logger.debug(activeDao.getIds().toString());
-		// activeDao.update(1, String.valueOf(System.currentTimeMillis()));
-		// logger.debug(activeDao.getAciveById(1).toString());
-		// Active active = activeDao.getAciveById(1);
-		// active.id = null;
-		// logger.debug(activeDao.insert(active).toString());
-		
-//		long start = System.currentTimeMillis();
-//		for(int i = 0; i < 20000; i++)
-//			activeDao.getAciveById(1);
-//		long end = System.currentTimeMillis();
-//		
-//		System.out.println(end - start);
-		PageResult p1 = new PageResult(5, 10);
-		PageResult p2 = activeDao.getPage2(p1);
-		logger.debug("p1:" + p1.getData());
-		logger.debug("p2:" + p2.getData());
+		DaoContext daoContext = new DaoContext();
+		DaoFactory daoFactory = daoContext.daoFactory;
+		ActiveDao dao = daoFactory.get(ActiveDao.class);
+		log.debug(dao.getAciveById(20));
+		log.debug(dao.getAll());
+		log.debug(dao.getBeanList());
+		log.debug(dao.getById(1));
+		log.debug(dao.getByIds(new int[]{1,2,3,4,5}));
+		log.debug(dao.getCount());
+		log.debug(dao.getDescs());
+		log.debug(dao.getIds());
+		PageResult page = new PageResult(1, 10);
+		log.debug(dao.getPage(page).getData());
+		log.debug(dao.getPage2(page, Arrays.asList("1", "ff")));
+		log.debug(dao.getPage3(page, "select * from player where id=:id", 3000001));
+		Active a = dao.getAciveById(20);
+		a.id = null;
+		log.debug(dao.insert(a));
+		dao.insert(Arrays.asList(a));
+		dao.update(21, "update des");
 	}
 }
