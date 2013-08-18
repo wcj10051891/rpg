@@ -1,0 +1,11 @@
+package com.cndw.dwgame.model {
+
+	public class JsonResponse {
+	
+		private var result:Boolean;
+
+		public function JsonResponse(result:Boolean) {
+			this.result = result;
+		}		
+	}
+}

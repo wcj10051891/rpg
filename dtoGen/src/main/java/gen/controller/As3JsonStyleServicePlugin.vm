@@ -1,0 +1,37 @@
+#set( $class = $metadata )
+package ${plugin.getDestinationPackage($class)} {
+
+	public class ${plugin.getAsClassName($class)} extends JsonServiceBase {
+#foreach( $method in ${plugin.getAllControllerMethods($class)} )
+		#set ($returnType = ${plugin.getMethodReturnType($method)})
+		/**
+		 * ${method.getComment()}
+		 */
+		public fuction $method.getName()($plugin.getParametersAsString($method)): $returnType {
+			var data:Json = new Json();
+			data.put("cmd", "${plugin.getCommand($class, $method)}");
+#foreach($entry in ${plugin.getParametersMap($method).entrySet()})
+			data.put("$entry.getKey()", $entry.getValue());
+#end
+			var response:Json = sendRequest(data);
+			
+#if( ${plugin.isEntityReturnType($method)} )
+			var entity:$returnType = new $returnType();
+			copyProperties(entity, response);
+			return entity;
+#else
+			var wrapper:ListWrapper = new ListWrapper();
+			var list:Array = response.get("list");
+			var elementClass = response.get("elementClass");
+			for (var item in list) {
+				var entity:* = reflectInstant(elementClass);
+				copyProperties(entity, item);
+				list.push(entity)
+			}
+			return new com.cndw.dwgame.app.model.GenericListWrapper(list);
+#end
+		}
+		
+#end
+	}
+}

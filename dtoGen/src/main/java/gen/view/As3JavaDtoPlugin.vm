@@ -1,0 +1,49 @@
+#set( $class = $metadata )
+package ${plugin.getDestinationPackage($class)} {
+
+#foreach ( $import in ${plugin.getAllImports($class)} )
+	import $import;
+#end
+
+${plugin.getFullComment($class)}
+#if ($class.superClass.javaClass.fullyQualifiedName == "java.lang.Object" || $class.superClass.javaClass.fullyQualifiedName == "dto.Dto")
+	public class ${class.name} {
+#else
+	import ${class.superClass.value};
+	public class ${class.name} extends ${class.superClass.javaClass.name} {
+#end
+
+#foreach( $field in $class.getFields() )
+#if (false && $field.static && $field.public)
+${plugin.getFullComment($field)}
+		public static const ${field.name}:${plugin.getAs3Type($field.type)}${plugin.getJavaFieldInitializationExpression($field)};
+#end
+#end
+
+#foreach( $nestClass in $class.getNestedClasses() )
+#foreach( $field in $nestClass.getFields() )
+${plugin.getFullComment($field)}
+		public static const ${nestClass.name}_${field.name}:String = "${field.name}";
+#end
+#end
+	
+#foreach( $field in $class.getFields() )
+#if ($field.public && !$field.static)
+${plugin.getFullComment($field)}
+		public var ${field.name}:${plugin.getAs3Type($field.type)}${plugin.getJavaFieldInitializationExpression($field)};
+#end
+#end
+
+#foreach( $beanProperty in $class.getBeanProperties() )
+#if (${plugin.isSuitableProperty($class, $beanProperty)})
+${plugin.getFullComment($class.getFieldByName($beanProperty.name))}
+${plugin.getFullComment($beanProperty.accessor)}
+#set($propertyType=${plugin.getPropertyType($beanProperty)})
+#set($propertyName=${plugin.capitalize($beanProperty.name)})
+		public var ${beanProperty.name}:$propertyType;
+    
+#end
+#end
+
+	}
+}

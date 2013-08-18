@@ -1,23 +1,30 @@
-<project name="dtoGen" basedir=".">
-	<property name="gen-src-dir" value="target/generated/" />
-	<property name="work.src" value="src" />
+<project name="dtoGen" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	<property name="work.src" value="src/main/java" />
 	<property name="work.classes" value="target/classes" />
+	<property name="gen-output-dir" value="target/generated" />
+	
+	<target name="maven-jar" description="Use Maven2 to manage jar dependence">
+		<artifact:pom file="pom.xml" id="maven.pom" />
+		<artifact:dependencies pathId="projet.maven.classpath" filesetId="maven.lib" usescope="runtime">
+			<pom refid="maven.pom"/>
+		</artifact:dependencies>
+	</target>
 
 	<target name="clean">
 		<delete dir="target" />
-		<mkdir dir="target/classes" />
-		<mkdir dir="target/generated/" />
+		<mkdir dir="${work.classes}" />
+		<mkdir dir="${gen-output-dir}" />
 	</target>
 
 	<path id="classpath">
-		<fileset dir="lib" />
+		<fileset refid="maven.lib" />
 		<pathelement location="${work.classes}" />
 	</path>
 
-	<target name="compile" description="Compiles all source files" depends="clean">
+	<target name="compile" description="Compiles all source files" depends="clean,maven-jar">
 		<javac srcdir="${work.src}" destdir="${work.classes}" classpathref="classpath" debug="true" />
-		<copy todir="target/classes">
-			<fileset dir="src" includes="**/*.vm" />
+		<copy todir="${work.classes}">
+			<fileset dir="${work.src}" includes="**/*.vm" />
 		</copy>
 	</target>
 
@@ -26,33 +33,33 @@
 			<path refid="classpath" />
 		</path>
 
-		<mkdir dir="${gen-src-dir}" />
+		<mkdir dir="${gen-output-dir}" />
 
 		<!-- Define xdoclet task -->
 		<taskdef name="xdoclet_ctrl" classname="org.xdoclet.ant.XDocletTask" classpathref="xdoclet.task.classpath" />
 
 		<xdoclet_ctrl>
 			<!-- specifies the file-set that carry xdoclet2 tags-->
-			<fileset dir="..\xianhun\src">
+			<fileset dir="D:/eclipse/workspace2/xianhun/src">
 				<include name="com/cndw/xianhun/mvc/controller/*Ctrl.java" />
 				<include name="com/cndw/xianhun/mvc/controller/*/*Ctrl.java" />
 			</fileset>
 
 			<!-- invoke the plugin -->
-			<component classname="com.cndw.dwcoder.controller.As3JavaRpcServicePlugin" destdir="${gen-src-dir}" />
+			<component classname="gen.controller.As3JavaRpcServicePlugin" destdir="${gen-output-dir}" />
 		</xdoclet_ctrl>
 
 		<!-- Define xdoclet task -->
 		<taskdef name="xdoclet_dto" classname="org.xdoclet.ant.XDocletTask" classpathref="xdoclet.task.classpath" />
 		<xdoclet_dto>
 			<!-- specifies the file-set that carry xdoclet2 tags-->
-			<fileset dir="..\xianhun\src">
+			<fileset dir="D:/eclipse/workspace2/xianhun/src">
 				<include name="com/cndw/xianhun/mvc/dto/*Dto.java" />
 				<include name="com/cndw/xianhun/mvc/dto/*/*Dto.java" />
 			</fileset>
 
 			<!-- invoke the plugin -->
-			<component classname="com.cndw.dwcoder.view.As3JavaDtoPlugin" destdir="${gen-src-dir}" />
+			<component classname="gen.view.As3JavaDtoPlugin" destdir="${gen-output-dir}" />
 		</xdoclet_dto>
 	</target>
 </project>

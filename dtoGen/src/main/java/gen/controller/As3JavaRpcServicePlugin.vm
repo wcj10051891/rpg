@@ -1,0 +1,28 @@
+#set( $class = $metadata )
+package ${plugin.getDestinationPackage($class)} {
+
+#foreach( $method in ${plugin.getAllControllerMethods($class)} )
+#if ( !$method.getReturnType().isPrimitive()  && !$method.getReturnType().isArray() )
+	import ${plugin.getMethodReturnType($method)};
+#end
+#end
+
+	public class ${plugin.getAsClassName($class)}
+	{
+#foreach( $method in ${plugin.getAllControllerMethods($class)} )
+
+${plugin.getFullComment($method)}
+		public static function $method.getName()(
+		        ${plugin.getParametersAsString($method)}
+		        callback:Function)
+		        :${plugin.getMethodReturnType($method)}
+		{
+			callRPC(
+			    "${plugin.getSimpleMethodName($class, $method)}",
+			    arguments);
+			return null;
+		}
+
+#end
+	}
+}

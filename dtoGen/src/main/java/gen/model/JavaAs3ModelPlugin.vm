@@ -1,0 +1,50 @@
+#set( $class = $metadata )
+package ${plugin.getDestinationPackage($class)} {
+
+#foreach ( $import in ${plugin.getAllImports($class)} )
+	import $import;
+#end
+
+	/**
+	 * ${plugin.getClassComment($class)}
+	 */
+#if ($class.superClass.javaClass.fullyQualifiedName == "java.lang.Object")
+	public class ${class.name} {
+#else
+	import ${class.superClass.value};
+	public class ${class.name} extends ${class.superClass.javaClass.name} {
+#end
+
+#foreach( $field in $class.getFields() )
+#if ($field.static && $field.public && $field.final)
+#if ($field.comment)
+		/** ${field.comment} */
+#end
+		public static const ${field.name}:${plugin.getAs3Type($field.type)} = ${field.initializationExpression};
+
+#end
+#end
+
+#foreach( $nestClass in $class.getNestedClasses() )
+#foreach( $field in $nestClass.getFields() )
+#if ($field.comment)
+		/** ${field.comment} */
+#end
+		public static const ${nestClass.name}_${field.name}:String = "${field.name}";
+#end
+#end
+
+#foreach( $beanProperty in $class.getBeanProperties() )
+#if (${plugin.isSuitableProperty($class, $beanProperty)})
+#if ($beanProperty.accessor.comment)
+		/** ${beanProperty.accessor.comment} */
+#end
+		#set($propertyType=${plugin.getPropertyType($beanProperty)})
+		#set($propertyName=${plugin.capitalize($beanProperty.name)})
+		public var ${beanProperty.name}:$propertyType;
+
+#end
+#end
+
+	}
+}
