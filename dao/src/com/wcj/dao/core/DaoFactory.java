@@ -122,12 +122,12 @@ public class DaoFactory {
 	private static final String delete = "delete";
 	private static final String update = "update";
 
-	private static Map<Class<?>, BeanHandler<?>> beanHandlers = new ConcurrentHashMap<>();
-	private static Map<Class<?>, BeanListHandler<?>> beanListHandlers = new ConcurrentHashMap<>();
+	private static Map<Class<?>, BeanHandler<?>> beanHandlers = new ConcurrentHashMap<Class<?>, BeanHandler<?>>();
+	private static Map<Class<?>, BeanListHandler<?>> beanListHandlers = new ConcurrentHashMap<Class<?>, BeanListHandler<?>>();
 	private static MapHandler mapHandler = new MapHandler();
-	private static ColumnListHandler<?> columnListHandler = new ColumnListHandler<>();
+	private static ColumnListHandler<?> columnListHandler = new ColumnListHandler<Object>();
 	private static MapListHandler mapListHandler = new MapListHandler();
-	private static ScalarHandler<?> scalarHandler = new ScalarHandler<>();
+	private static ScalarHandler<?> scalarHandler = new ScalarHandler<Object>();
 	private static BasicRowProcessor basicRowProcessor = new BasicRowProcessor();
 	
 
@@ -262,7 +262,7 @@ public class DaoFactory {
 						int index = sql.indexOf(" values");
 						String valueSql = sql.substring(index + 7);
 						sql = sql.substring(0, index);
-						List<String> valueSqls = new ArrayList<>();
+						List<String> valueSqls = new ArrayList<String>();
 						String temp;
 						for(Object v : (Collection)args[i]) {
 							temp = valueSql;
@@ -464,7 +464,7 @@ public class DaoFactory {
 			return quote + new SimpleDateFormat(dateFormat) .format((Date) value) + quote;
 		} else if (value instanceof Collection) {
 			Collection<?> values = (Collection<?>)value;
-			List<String> strs = new ArrayList<>(values.size()); 
+			List<String> strs = new ArrayList<String>(values.size()); 
 			for(Object v : values) 
 				strs.add(toString(v));
 			return StringUtils.join(strs, comma); 
@@ -482,7 +482,7 @@ public class DaoFactory {
 	private static <T> BeanHandler<T> getBeanHandler(Class<T> beanClass) {
 		if (beanHandlers.containsKey(beanClass))
 			return (BeanHandler<T>) beanHandlers.get(beanClass);
-		BeanHandler<T> handler = new BeanHandler<>(beanClass);
+		BeanHandler<T> handler = new BeanHandler<T>(beanClass);
 		beanHandlers.put(beanClass, handler);
 		return handler;
 	}
@@ -491,7 +491,7 @@ public class DaoFactory {
 	private static <T> BeanListHandler<T> getBeanListHandler(Class<T> beanClass) {
 		if (beanListHandlers.containsKey(beanClass))
 			return (BeanListHandler<T>) beanListHandlers.get(beanClass);
-		BeanListHandler<T> handler = new BeanListHandler<>(beanClass);
+		BeanListHandler<T> handler = new BeanListHandler<T>(beanClass);
 		beanListHandlers.put(beanClass, handler);
 		return handler;
 	}

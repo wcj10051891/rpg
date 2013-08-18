@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Agent-Class: premain.InstrumentAgent
+Premain-Class: premain.InstrumentAgent
+Can-Redefine-Classes: true

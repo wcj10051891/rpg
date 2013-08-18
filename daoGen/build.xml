@@ -3,7 +3,7 @@
 	<tstamp>
 		<format property="version" pattern="yyMMdd" />
 	</tstamp>
-	<property name="jdk.version" value="1.7" />
+	<property name="jdk.version" value="1.6" />
 	<property name="source.encoding" value="UTF-8" />
 	<property name="app.name" value="daoGen" />
 	
