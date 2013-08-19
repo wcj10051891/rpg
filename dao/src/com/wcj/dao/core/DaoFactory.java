@@ -45,6 +45,7 @@ import org.apache.commons.logging.LogFactory;
 import com.wcj.dao.annotation.Arg;
 import com.wcj.dao.annotation.BatchInsert;
 import com.wcj.dao.annotation.Dao;
+import com.wcj.dao.annotation.IdModSharding;
 import com.wcj.dao.annotation.Page;
 import com.wcj.dao.annotation.Sql;
 import com.wcj.dao.core.page.PageResult;
@@ -54,6 +55,8 @@ import com.wcj.dao.core.page.dialect.Oracle10gDialect;
 import com.wcj.dao.core.page.dialect.Oracle8iDialect;
 import com.wcj.dao.core.page.dialect.Oracle9iDialect;
 import com.wcj.dao.core.page.dialect.SqlServerDialect;
+import com.wcj.dao.core.sharding.IdModStrategy;
+import com.wcj.dao.core.sharding.ShardingStrategy;
 import com.wcj.util.BeanUtils;
 import com.wcj.util.PageUtils;
 import com.wcj.util.StringUtils;
@@ -129,7 +132,7 @@ public class DaoFactory {
 	private static MapListHandler mapListHandler = new MapListHandler();
 	private static ScalarHandler<?> scalarHandler = new ScalarHandler<Object>();
 	private static BasicRowProcessor basicRowProcessor = new BasicRowProcessor();
-	
+	private static Map<Class<?>, ShardingStrategy> shardingStrategys = new HashMap<Class<?>, ShardingStrategy>();
 
 	private static final Map<Class<?>, Class<?>> buildInTypes = new HashMap<Class<?>, Class<?>>();
 	static {
@@ -191,8 +194,9 @@ public class DaoFactory {
 			}
 		}
 		catch (Exception e) {
-			logger.error("fetch database info error.", e);
+			throw new DaoException("fetch database info error.", e);
 		}
+		shardingStrategys.put(IdModSharding.class, new IdModStrategy());
 	}
 
 	private InvocationHandler handler = new InvocationHandler() {
@@ -250,7 +254,7 @@ public class DaoFactory {
 							throw new DaoException("@Page annotationed param must instanceof PageResult.");
 					    pageReturnType = ((Page) anno[0]).value();
 					    pageResult = (PageResult)args[i];
-					} else if (isInsert && anno[0].annotationType() == BatchInsert.class) {
+					} else if (anno[0].annotationType() == BatchInsert.class) {
 						if(!isInsert)
 							throw new DaoException("@BatchInsert only support insert operation.");
 						if(!(args[i] instanceof Collection))
@@ -279,6 +283,8 @@ public class DaoFactory {
 							valueSqls.add(temp);
 						}
 						sql += " values" + StringUtils.join(valueSqls, ",");
+					} else if (anno[0].annotationType() == IdModSharding.class) {
+						sql = shardingStrategys.get(IdModSharding.class).process(sql, anno[0], args[i]);
 					}
 			}
 			local.remove();

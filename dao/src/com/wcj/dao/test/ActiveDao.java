@@ -6,10 +6,10 @@ import java.util.Map;
 import com.wcj.dao.annotation.Arg;
 import com.wcj.dao.annotation.BatchInsert;
 import com.wcj.dao.annotation.Dao;
+import com.wcj.dao.annotation.IdModSharding;
 import com.wcj.dao.annotation.Page;
 import com.wcj.dao.annotation.Sql;
 import com.wcj.dao.core.page.PageResult;
-
 
 @Dao
 public interface ActiveDao
@@ -31,7 +31,7 @@ public interface ActiveDao
     List<Active> getBeanList();
 
     @Sql("select * from active")
-    List<Map> getAll();
+    List<Map<String, Object>> getAll();
 
     @Sql("select id from active")
     public List<Integer> getIds();
@@ -64,4 +64,7 @@ public interface ActiveDao
      */
     @Sql(value="insert into active(	`id`,	`name`,	`description`,	`times`,	`icon`,	`npcId`,	`evilId`,	`funcName`,	`rewards`,	`gainType`	) values(	:active.id,	:active.name,	:active.description,	:active.times,	:active.icon,	:active.npcId,	:active.evilId,	:active.funcName,	:active.rewards,	:active.gainType	)")
     void insert(@BatchInsert("active") List<Active> o);
+
+    @Sql(value="insert into active5(	`id`,	`name`,	`description`,	`times`,	`icon`,	`npcId`,	`evilId`,	`funcName`,	`rewards`,	`gainType`	) values(	:active.id,	:active.name,	:active.description,	:active.times,	:active.icon,	:active.npcId,	:active.evilId,	:active.funcName,	:active.rewards,	:active.gainType	)")
+    void insertShard(@Arg("active") Active o, @IdModSharding(tableName="active5") int id);
 }

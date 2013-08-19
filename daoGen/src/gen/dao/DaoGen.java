@@ -28,7 +28,7 @@ import java.util.Set;
  * 取的类名表名信息，来生成相应Dao，XXXXDao，包含一些常用CRUD方法，
  * 而且会从svn下载一份对应的最新版本，与生成版本比较合并，不会覆盖。
  * 
- * 也可以生成分表的dao，指定的表名格式为player_item_1或player_item_2，会生成PlayerItemDao
+ * 也可以生成sharding分表的dao，指定的表名格式为player_item_1或player_item_2，会生成PlayerItemDao
  * @author wangchengjie	wcj10051891@gmail.com
  */
 public class DaoGen
@@ -37,7 +37,7 @@ public class DaoGen
     private static final String packageName = cfg.getString("dao.package.name", "com.cndw.xianhun.persist.dao");
     private static final String outputPath = cfg.getString("dao.gen.output.file", "../xianhun/src/com/cndw/xianhun/persist/dao/{0}Dao.java");
     private static final String templatePath = cfg.getString("dao.gen.template.file", "src/gen/dao/daoTemplate.vm");
-    private static final String shardTemplatePath = cfg.getString("dao.gen.shard.template.file", "src/gen/dao/shardDao.vm");
+    private static final String shardTemplatePath = cfg.getString("dao.gen.shard.template.file", "src/gen/dao/shardDaoTemplate.vm");
     
     // 排除列表，不生成
     private static final Set<String> excludes = new HashSet<String>(Arrays.asList(cfg.getString("dao.gen.excludes").split(",")));
@@ -68,7 +68,7 @@ public class DaoGen
                 {
 
                     if(EntityGen.shardingTablePattern.matcher(tableName).find())
-                        genShardDao(className, tableName.replaceFirst(EntityGen.shardingTablePattern.pattern(), ""), tableMetaData.getColumnNames());
+                        genShardDao(className, tableName, tableMetaData.getColumnNames());
                     else
                         genDao(className, tableName, tableMetaData.getColumnNames());
                 }
@@ -111,16 +111,14 @@ public class DaoGen
         ctx.put("entityName", Utils.firstLowerCase(className));
         ctx.put("tableName", tableName);
         ctx.put("properties", properties);
-        ctx.put("shardConfigValue", "playerId");
         ctx.put("classFullName", classFullName);
 
         String outPutPath = MessageFormat.format(outputPath, className);
         VelocityRuner.run(ctx, shardTemplatePath, MessageFormat.format(outputPath, className));
-
-        File generated = new File(outPutPath);
-
-        String svnOldDaoFullClassName = packageName + "." + className + "Dao";
-        compareToSvnLastest(generated, svnOldDaoFullClassName);
+//		和svn对比
+//        File generated = new File(outPutPath);
+//        String svnOldDaoFullClassName = packageName + "." + className + "Dao";
+//        compareToSvnLastest(generated, svnOldDaoFullClassName);
 
         System.out.println("gen shard dao success: " + className + "->" + outPutPath);
     }
