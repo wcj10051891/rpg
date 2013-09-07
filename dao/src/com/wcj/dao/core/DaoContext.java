@@ -21,12 +21,12 @@ public class DaoContext {
 	}
 
 	private DataSource initDataSource() {
-		Config jdbcCfg = new Config("jdbc.properties");
+		Config cfg = new Config("jdbc.properties");
 		BasicDataSource datasource = new BasicDataSource();
-		datasource.setDriverClassName(jdbcCfg.getString("jdbc.driver"));
-		datasource.setUrl(jdbcCfg.getString("jdbc.url"));
-		datasource.setUsername(jdbcCfg.getString("jdbc.username"));
-		datasource.setPassword(jdbcCfg.getString("jdbc.password"));
+		datasource.setDriverClassName(cfg.getString("jdbc.driver"));
+		datasource.setUrl(cfg.getString("jdbc.url"));
+		datasource.setUsername(cfg.getString("jdbc.username"));
+		datasource.setPassword(cfg.getString("jdbc.password"));
 		return datasource;
 	}
 }

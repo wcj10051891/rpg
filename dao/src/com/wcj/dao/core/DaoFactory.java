@@ -110,6 +110,19 @@ import com.wcj.util.StringUtils;
     
     <pre>动态指定sql
 	public PageResult getPage3(@Page(Map.class) PageResult page, @Sql String sql, @Arg("id")Integer id);</pre>
+	
+	<pre>简单sharding支持，以某个传入的整型参数shardArg（如playerId，userId）对分表个数取模加1，计算得到正确表名后缀数字来替换，生成最终正确的表名（数据库表名要定义为数字结尾，而且要创建表的个数为分表的数目）。
+	insert  @Sql(value="insert into player_item_1(	`id`,	`itemId`,	`binding`,	`source`,	`playerId`,	`stackNum`,	`currDurability`,	`used`,	`createTime`,	`extAttribute`,	`rmb`,	`gold`,	`goldTicket`,	`icon`,	`hp`,	`mp`,	`normalHurt`,	`attackSpeed`,	`pp`,	`sp`,	`phyDef`,	`magDef`,	`aim`,	`av`,	`vio`,	`speed`,	`forgeLevel`,	`forgeFailTimes`,	`enchaseHole1`,	`enchaseHole2`,	`enchaseHole3`,	`forgeHole1`,	`forgeHole2`,	`recastValues`,	`multiRecast`,	`suitItemId`,	`wish`,	`forgeAddLv`,	`score`	) values(	:playerItem.id,	:playerItem.itemId,	:playerItem.binding,	:playerItem.source,	:playerItem.playerId,	:playerItem.stackNum,	:playerItem.currDurability,	:playerItem.used,	:playerItem.createTime,	:playerItem.extAttribute,	:playerItem.rmb,	:playerItem.gold,	:playerItem.goldTicket,	:playerItem.icon,	:playerItem.hp,	:playerItem.mp,	:playerItem.normalHurt,	:playerItem.attackSpeed,	:playerItem.pp,	:playerItem.sp,	:playerItem.phyDef,	:playerItem.magDef,	:playerItem.aim,	:playerItem.av,	:playerItem.vio,	:playerItem.speed,	:playerItem.forgeLevel,	:playerItem.forgeFailTimes,	:playerItem.enchaseHole1,	:playerItem.enchaseHole2,	:playerItem.enchaseHole3,	:playerItem.forgeHole1,	:playerItem.forgeHole2,	:playerItem.recastValues,	:playerItem.multiRecast,	:playerItem.suitItemId,	:playerItem.wish,	:playerItem.forgeAddLv,	:playerItem.score	)")
+	void insert(@Arg(value="playerItem") PlayerItem entity, @IdModSharding(tableName="player_item_1")Integer shardArg);</pre>
+	<pre>
+	delete @Sql(value="delete from player_item_1 where id=:id")
+	void delete(@Arg(value="id")Long id, @IdModSharding(tableName="player_item_1")Integer shardArg);</pre>
+	<pre>
+	update @Sql(value="update player_item_1 set 	`id`=:playerItem.id,	`itemId`=:playerItem.itemId,	`binding`=:playerItem.binding,	`source`=:playerItem.source,	`playerId`=:playerItem.playerId,	`stackNum`=:playerItem.stackNum,	`currDurability`=:playerItem.currDurability,	`used`=:playerItem.used,	`createTime`=:playerItem.createTime,	`extAttribute`=:playerItem.extAttribute,	`rmb`=:playerItem.rmb,	`gold`=:playerItem.gold,	`goldTicket`=:playerItem.goldTicket,	`icon`=:playerItem.icon,	`hp`=:playerItem.hp,	`mp`=:playerItem.mp,	`normalHurt`=:playerItem.normalHurt,	`attackSpeed`=:playerItem.attackSpeed,	`pp`=:playerItem.pp,	`sp`=:playerItem.sp,	`phyDef`=:playerItem.phyDef,	`magDef`=:playerItem.magDef,	`aim`=:playerItem.aim,	`av`=:playerItem.av,	`vio`=:playerItem.vio,	`speed`=:playerItem.speed,	`forgeLevel`=:playerItem.forgeLevel,	`forgeFailTimes`=:playerItem.forgeFailTimes,	`enchaseHole1`=:playerItem.enchaseHole1,	`enchaseHole2`=:playerItem.enchaseHole2,	`enchaseHole3`=:playerItem.enchaseHole3,	`forgeHole1`=:playerItem.forgeHole1,	`forgeHole2`=:playerItem.forgeHole2,	`recastValues`=:playerItem.recastValues,	`multiRecast`=:playerItem.multiRecast,	`suitItemId`=:playerItem.suitItemId,	`wish`=:playerItem.wish,	`forgeAddLv`=:playerItem.forgeAddLv,	`score`=:playerItem.score	 where id=:playerItem.id")
+	void update(@Arg(value="playerItem") PlayerItem entity, @IdModSharding(tableName="player_item_1")Integer shardArg);</pre>
+	<pre>
+	get @Sql(value="select * from player_item_1 where id=:id")
+	PlayerItem get(@Arg(value="id") Long id, @IdModSharding(tableName="player_item_1")Integer shardArg);</pre>
  *	@author wcj
  */
 public class DaoFactory {
@@ -267,9 +280,8 @@ public class DaoFactory {
 						String valueSql = sql.substring(index + 7);
 						sql = sql.substring(0, index);
 						List<String> valueSqls = new ArrayList<String>();
-						String temp;
 						for(Object v : (Collection)args[i]) {
-							temp = valueSql;
+							String temp = valueSql;
 							for (Entry<String, String> entry : convert(argName, v).entrySet()) {
 								String key = entry.getKey();
 								StringBuffer sqlTemp = new StringBuffer();

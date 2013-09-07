@@ -1,0 +1,25 @@
+package {
+
+#foreach( $key in $rpcArray )
+    import $key;                
+#end
+
+	public class RpcServiceArray {
+
+        public static var rpcs:Array = [
+#foreach( $key in $rpcArray )
+            $key #if ( $velocityCount != $rpcArray.size() ),
+#end
+#end
+
+        ];
+
+        public static var rpcArgs:Object = {
+#foreach( $key in $rpcArgMap.keySet() )
+            "$key" : [$rpcArgMap.get($key)] #if ( $velocityCount != $rpcArgMap.size() ),
+#end
+#end
+
+        };
+	}
+}

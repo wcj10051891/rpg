@@ -18,6 +18,3 @@ public interface PlayerItemDao {
 	@Sql(value="select * from player_item_1 where id=:id")
 	PlayerItem get(@Arg(value="id") Long id, @IdModSharding(tableName="player_item_1")Integer shardArg);
 }
-
-
-

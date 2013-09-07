@@ -1,52 +1,21 @@
-<project name="daoGen" basedir=".">
-
-	<tstamp>
-		<format property="version" pattern="yyMMdd" />
-	</tstamp>
+<project name="xlib" basedir=".">
+	<property name="src" value="src" />
+	<property name="target" value="target" />
+	<property name="classes" value="${target}/classes" />
 	<property name="jdk.version" value="1.6" />
 	<property name="source.encoding" value="UTF-8" />
-	<property name="app.name" value="mydao" />
 	
 	<path id="classpath.project">
-		<fileset dir="lib/" />
-		<pathelement location="bin" />
+		<fileset dir="lib/"/>
 	</path>
 	
-	<target name="comment_gen">
-		<java classname="gen.comment.CommentGen">
-			<classpath>
-				<path refid="classpath.project" />
-			</classpath>
-		</java>
-	</target>
-	
-	<target name="entity_gen">
-		<java classname="gen.entity.EntityGen">
-			<classpath>
-				<path refid="classpath.project" />
-			</classpath>
-		</java>
-	</target>
-	
-	<target name="dao_gen">
-		<java classname="gen.dao.DaoGen">
-			<classpath>
-				<path refid="classpath.project" />
-			</classpath>
-		</java>
-	</target>
-	
-	<target name="gen_all" depends="entity_gen, dao_gen"/>
-	
-	<!--////////////////////////        Path define -->
-
 	<target name="clean">
 		<delete dir="target" />
 	</target>
 
 	<target name="compile" depends="clean">
-		<mkdir dir="target/classes" />
-		<javac srcdir="src" destdir="target/classes" source="${jdk.version}" target="${jdk.version}" encoding="${source.encoding}" nowarn="on" debug="true">
+		<mkdir dir="${classes}" />
+		<javac srcdir="${src}" destdir="${classes}" source="${jdk.version}" target="${jdk.version}" encoding="${source.encoding}" nowarn="on" debug="true">
 			<classpath>
 				<path refid="classpath.project" />
 			</classpath>
@@ -54,13 +23,14 @@
 	</target>
 
 	<target name="dist" depends="compile">
-		<jar destfile="target/${app.name}.jar">
-			<fileset dir="target/classes" />
+		<jar destfile="${target}/${ant.project.name}.jar">
+			<fileset dir="${classes}" />
 		</jar>
+		<delete dir="${target}" includeemptydirs="true" excludes="${ant.project.name}.jar"/>
 	</target>
 	
 	<target name="dist-src">
-		<jar destfile="${app.name}-src-${version}.jar">
+		<jar destfile="${project.name}-src.jar">
 			<fileset dir="src">
 				<exclude name=".svn" />
 			</fileset>

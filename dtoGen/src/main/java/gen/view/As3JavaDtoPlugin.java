@@ -29,7 +29,6 @@ import com.thoughtworks.qdox.model.JavaClass;
  * User: kofboy
  * Date: 2010-9-19
  */
-
 public class As3JavaDtoPlugin extends JavaModelPlugin
 {
 
@@ -67,13 +66,14 @@ public class As3JavaDtoPlugin extends JavaModelPlugin
         createClassAliasRegister();
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void createClassAliasRegister() {
         if (isCreatealiasregister())
             return;
         try {
             System.out.println(">>> Processing ClassAliasRegister: ClassAliasRegister.as");
             Writer writer = getWriter("ClassAliasRegister.as");
-            Map contextObjects = getContextObjects();
+			Map contextObjects = getContextObjects();
             contextObjects.put("classAliasMap", classAliasMap);
             contextObjects.put("classPackageSet", classPackageSet);
             templateEngine.generate(writer, contextObjects, getEncoding(), AsClassAliasRegisterPlugin.class);

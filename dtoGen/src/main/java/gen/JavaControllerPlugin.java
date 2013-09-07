@@ -15,7 +15,6 @@ import org.generama.WriterMapper;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.model.JavaParameter;
-import com.thoughtworks.qdox.model.Type;
 
 /**
  * 生成以Json为封包格式的AS3 Service接口
@@ -54,15 +53,15 @@ public class JavaControllerPlugin extends JavaGeneratingPluginBase {
 
         for (JavaMethod jm : jc.getMethods())
         {
-            if (! jm.isPublic())
+            if (!jm.isPublic())
                 continue;
-            StringBuilder arg = new StringBuilder();
-            JavaParameter[] jps = jm.getParameters();
-            for (int i=1; i<jps.length; i++)
-                arg.append("\"").append(jps[i].getName()).append("\", ");
-            if (jps.length > 1)
-                arg.delete(arg.length()-2, arg.length());
-            rpcArgMap.put(mName + "::" + jm.getName(), arg.toString());
+            StringBuilder args = new StringBuilder();
+            JavaParameter[] methodParameters = jm.getParameters();
+            for (int i=1; i<methodParameters.length; i++)
+                args.append("\"").append(methodParameters[i].getName()).append("\", ");
+            if (methodParameters.length > 1)
+                args.delete(args.length()-2, args.length());
+            rpcArgMap.put(mName + "::" + jm.getName(), args.toString());
         }
 
         System.out.println(">>> Processing Controller: " + jc.getFullyQualifiedName());
@@ -70,7 +69,7 @@ public class JavaControllerPlugin extends JavaGeneratingPluginBase {
 	}
 	
 	public boolean isControllerMethod(JavaMethod method) {
-		Type returnType = method.getReturnType();
+//		Type returnType = method.getReturnType();
 		//if (! returnType.isVoid())
 			return method.isPublic() && !method.isAbstract() && !method.isStatic();
 		//return false;

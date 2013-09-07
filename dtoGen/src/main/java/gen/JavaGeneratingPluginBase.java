@@ -199,7 +199,7 @@ public class JavaGeneratingPluginBase extends JavaGeneratingPlugin {
                     buffer.write(prefix + " * @");
                     buffer.write(docletTag.getName());
                     if ("return".equals(docletTag.getName()) && typeMap.get("") != null)
-                    buffer.write("<" + typeMap.get("") + ">");
+                    	buffer.write("<" + typeMap.get("") + ">");
                     if (docletTag.getValue().length() > 0) {
                         buffer.write(' ');
                         String tagVal = docletTag.getValue();

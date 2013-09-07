@@ -29,7 +29,8 @@ public class Main {
 //		log.debug(dao.getPage(page).getData());
 //		log.debug(dao.getPage2(page, Arrays.asList("1", "ff")));
 //		log.debug(dao.getPage3(page, "select * from player where id=:id", 3000001));
-		PlayerItemDao dao = daoFactory.get(PlayerItemDao.class);
-		System.out.println(dao.get(2168258563l, 3000010));
+		ActiveDao dao = daoFactory.get(ActiveDao.class);
+		Active a = new Active();
+		dao.insert(a);
 	}
 }

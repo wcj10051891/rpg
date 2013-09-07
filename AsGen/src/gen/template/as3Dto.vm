@@ -1,0 +1,13 @@
+package ${packageName} {
+
+$!{imports}
+
+$!{classComment}
+#if (#${superClassName} == "")
+	public class ${className} {
+#else
+	public class ${className} extends ${superClassName} {
+#end
+${fields}
+	}
+}

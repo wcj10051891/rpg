@@ -17,12 +17,10 @@ import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaMethod;
 
 /**
- * 输出Json样式的AS3 Service代码
- * 
+ * 将java代码转换成AS3 Service代码
  * @author <a href="mailto:xiaofeng.l@cndw.com">arbow</a>
  */
 public class As3JavaRpcServicePlugin extends JavaControllerPlugin {
-
     private static final String DEFAULT_PACKAGE_NAME = "^.*controller";
     private boolean createRpcServiceArray = false;
     private VelocityTemplateEngine templateEngine;
@@ -52,6 +50,7 @@ public class As3JavaRpcServicePlugin extends JavaControllerPlugin {
         createRpcServiceArray();
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void createRpcServiceArray() {
         if (createRpcServiceArray)
             return;
@@ -59,7 +58,7 @@ public class As3JavaRpcServicePlugin extends JavaControllerPlugin {
         try {
             System.out.println(">>> Processing createRpcServiceArray: RpcServiceArray.as");
             Writer writer = getWriter("RpcServiceArray.as");
-            Map contextObjects = getContextObjects();
+			Map contextObjects = getContextObjects();
             contextObjects.put("rpcArray", rpcArray);
             contextObjects.put("rpcArgMap", rpcArgMap);
             templateEngine.generate(writer, contextObjects, getEncoding(), RpcServiceArrayPlugin.class);
