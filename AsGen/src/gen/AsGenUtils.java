@@ -8,7 +8,7 @@ public abstract class AsGenUtils {
 		StringBuilder comments = new StringBuilder();
 		String comment = javaEntity.getComment();
 		if(comment != null)
-			comments.append("\t\t * ").append(comment).append(System.lineSeparator());
+			comments.append("\t\t * ").append(comment.replaceAll(System.lineSeparator(), System.lineSeparator() + "\t\t * ")).append(System.lineSeparator());
 		for (DocletTag docletTag : javaEntity.getTags()) {
 			String tagName = docletTag.getName();
 			String comm = docletTag.getValue();

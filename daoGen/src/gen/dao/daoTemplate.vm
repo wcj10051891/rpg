@@ -8,7 +8,6 @@ import $classFullName;
 #end
 @Dao
 public interface ${className}Dao {
-	
 	@Sql(value="insert into $tableName(#attList()) values(#attValueList())")
 	Integer insert(@Arg(value="$entityName") $className o);
 	

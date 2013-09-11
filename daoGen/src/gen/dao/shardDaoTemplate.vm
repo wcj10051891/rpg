@@ -8,7 +8,6 @@ import $classFullName;
 #end
 @Dao
 public interface ${className}Dao {
-
 	@Sql(value="insert into ${tableName}(#attList()) values(#attValueList())")
 	void insert(@Arg(value="$entityName") $className entity, @IdModSharding(tableName="${tableName}")Integer shardArg);
 	
@@ -34,13 +33,11 @@ public interface ${className}Dao {
 `$property`#if( $velocityHasNext ),#end
 	#end
 #end
-
 #macro(attValueList)
 	#foreach( $property in $properties )
 :$entityName.$property#if( $velocityHasNext ),#end
 	#end
 #end
-
 #macro(updateValueList)
 	#foreach( $property in $properties )
 `$property`=:$entityName.$property#if( $velocityHasNext ),#end

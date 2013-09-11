@@ -17,7 +17,7 @@
 #if ($packageName != '')
 package $packageName;
 #end
-//$tableComment
+/** $tableComment */
 public class ${entityName}{
 #cols()
 #getmethods()
@@ -34,8 +34,9 @@ public class ${entityName}{
 *#
 #macro(cols)
 #foreach( $property in $columns )
-	public #if($property.columnType == $int || $property.columnType == $tinyint)$Integer#set($type = "Integer")#elseif($property.columnType == $bigint)$Long#set($type = "Long")#elseif( $property.columnType == $varchar || $property.columnType == $text || $property.columnType == $mediumtext)$String#set($type = "String")#elseif( $property.columnType == $datetime || $property.columnType == $timestamp)$Timestamp#set($type = "Timestamp")#elseif( $property.columnType == $bit )$boolean#set($type = "boolean")#elseif($property.columnType == $float)$float#set($type = "float")#elseif($property.columnType == $double)$double#set($type = "double")#end $property.columnName#if($property.nullable=="NO" && $property.columnName != "id")=#if( $property.columnType == $int || $property.columnType == $tinyint)0#elseif($property.columnType == $bigint)0l#elseif( $property.columnType == $varchar || $property.columnType == $text || $property.columnType == $mediumtext)""#elseif( $property.columnType == $datetime || $property.columnType == $timestamp)new $Timestamp(System.currentTimeMillis())#elseif( $property.columnType == $bit )false#elseif($property.columnType == $float)0f#end;//$property.columnComment
-#else;//$property.columnComment
+	/** $property.columnComment */
+	public #if($property.columnType == $int || $property.columnType == $tinyint)$Integer#set($type = "Integer")#elseif($property.columnType == $bigint)$Long#set($type = "Long")#elseif( $property.columnType == $varchar || $property.columnType == $text || $property.columnType == $mediumtext)$String#set($type = "String")#elseif( $property.columnType == $datetime || $property.columnType == $timestamp)$Timestamp#set($type = "Timestamp")#elseif( $property.columnType == $bit )$boolean#set($type = "boolean")#elseif($property.columnType == $float)$float#set($type = "float")#elseif($property.columnType == $double)$double#set($type = "double")#end $property.columnName#if($property.nullable=="NO" && $property.columnName != "id")=#if( $property.columnType == $int || $property.columnType == $tinyint)0#elseif($property.columnType == $bigint)0l#elseif( $property.columnType == $varchar || $property.columnType == $text || $property.columnType == $mediumtext)""#elseif( $property.columnType == $datetime || $property.columnType == $timestamp)new $Timestamp(System.currentTimeMillis())#elseif( $property.columnType == $bit )false#elseif($property.columnType == $float)0f#end;
+#else;
 #end	
 #end
 #end
@@ -47,8 +48,6 @@ public class ${entityName}{
 	}
 #end
 #end
-
-
 #macro(setmethods)
 #foreach( $property in $columns )
 #if( $property.columnType == $int || $property.columnType == $tinyint)#set($type = $Integer)#elseif($property.columnType == $bigint)#set($type = $Long)#elseif( $property.columnType == $varchar || $property.columnType == $text || $property.columnType == $mediumtext)#set($type = $String)#elseif( $property.columnType == $datetime || $property.columnType == $timestamp)#set($type = $Timestamp)#elseif( $property.columnType == $bit )#set($type = $boolean)#elseif($property.columnType == $float)#set($type = $float)#elseif($property.columnType == $double)#set($type = $double)#end
