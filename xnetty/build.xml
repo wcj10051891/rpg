@@ -1,0 +1,47 @@
+<project name="xnetty">
+	<property name="jdk.version" value="1.6" />
+	<property name="source.encoding" value="UTF-8" />
+	<property name="app.name" value="xnetty" />
+	
+	<path id="classpath.project">
+		<fileset dir="lib/" />
+	</path>
+
+	<target name="clean">
+		<delete file="target/*" />
+	</target>
+
+	<target name="compile" depends="clean">
+		<delete dir="target/classes" />
+		<mkdir dir="target/classes" />
+		<javac srcdir="src" destdir="target/classes" source="${jdk.version}" target="${jdk.version}" encoding="${source.encoding}" debug="true">
+			<classpath>
+				<path refid="classpath.project" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="dist" depends="compile">
+		<jar destfile="target/${app.name}.jar">
+			<fileset dir="target/classes" />
+		</jar>
+		<delete dir="target/classes" />
+	</target>
+	
+	<target name="dist-src" description="Archive Src" depends="dist">
+		<jar destfile="target/${app.name}-src.jar">
+			<fileset dir="src">
+				<include name="**" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="javadoc">
+		<echo message="----------------- Create Javadoc -----------------" />
+		<javadoc destdir="target/document/javadoc" sourcepath="src/java" encoding="utf-8" docencoding="utf-8" charset="utf-8">
+			<classpath>
+				<path refid="classpath.project" />
+			</classpath>
+		</javadoc>
+	</target>
+</project>

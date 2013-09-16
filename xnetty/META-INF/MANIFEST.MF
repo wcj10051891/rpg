@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: norman
+Build-Jdk: 1.6.0_35
+Specification-Title: The Netty Project
+Specification-Version: 3.2.9.Final
+Specification-Vendor: JBoss by Red Hat
+Implementation-Title: The Netty Project
+Implementation-Version: 3.2.9.Final
+Implementation-Vendor-Id: org.jboss.netty
+Implementation-Vendor: JBoss by Red Hat
+Build-Timestamp: Mo, 21 Jan 2013 07:59:08 +0100
+Implementation-URL: http://www.jboss.org/netty/
+Java-Vendor: Apple Inc.
+Java-Version: 1.6.0_35
+Os-Arch: x86_64
+Os-Name: Mac OS X
+Os-Version: 10.8.2
+Scm-Connection: scm:git:git://github.com/netty/netty.git
+Scm-Revision: 3b5550e16b30d0046862ab3c634400ee6e1b9b7e
+Scm-Url: https://github.com/netty/netty
+
