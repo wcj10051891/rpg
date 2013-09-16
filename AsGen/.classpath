@@ -6,6 +6,6 @@
 	<classpathentry kind="lib" path="lib/velocity-1.4.jar" sourcepath="C:/Users/wcj/.m2/repository/velocity/velocity/1.4/velocity-1.4-sources.jar"/>
 	<classpathentry kind="lib" path="lib/velocity-dep-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang-2.6.jar"/>
-	<classpathentry kind="lib" path="lib/qdox-1.12.jar" sourcepath="C:/Users/wcj/.m2/repository/com/thoughtworks/qdox/qdox/1.12/qdox-1.12-sources.jar"/>
+	<classpathentry kind="lib" path="lib/qdox-1.12.jar" sourcepath="C:/Users/E430c/.m2/repository/com/thoughtworks/qdox/qdox/1.12/qdox-1.12-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

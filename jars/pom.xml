@@ -4,15 +4,16 @@
 	<groupId>com.wcj</groupId>
 	<artifactId>jars</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-
-	<repositories>
-		<repository>
-			<id>sonatype</id>
-			<name>sonatype</name>
-			<url>https://repository.sonatype.org/content/groups/forge</url>
-		</repository>
-	</repositories>
+	<!-- <repositories> <repository> <id>sonatype</id> <name>sonatype</name> 
+		<url>https://repository.sonatype.org/content/groups/forge</url> </repository> 
+		</repositories> -->
 	<dependencies>
+		<dependency>
+			<groupId>net.sf.json-lib</groupId>
+			<artifactId>json-lib</artifactId>
+			<version>2.4</version>
+			<classifier>jdk15-sources</classifier>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-ant-tasks</artifactId>
@@ -91,7 +92,7 @@
 		<dependency>
 			<groupId>net.sf.json-lib</groupId>
 			<artifactId>json-lib</artifactId>
-			<version>2.3</version>
+			<version>2.4</version>
 			<classifier>jdk15</classifier>
 		</dependency>
 		<dependency>
@@ -123,16 +124,6 @@
 			<groupId>quartz</groupId>
 			<artifactId>quartz</artifactId>
 			<version>1.5.2</version>
-		</dependency>
-		<dependency>
-			<groupId>com.adobe.blazeds</groupId>
-			<artifactId>blazeds-core</artifactId>
-			<version>3.2.0.3978</version>
-		</dependency>
-		<dependency>
-			<groupId>com.adobe.blazeds</groupId>
-			<artifactId>blazeds-common</artifactId>
-			<version>3.2.0.3978</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-digester</groupId>
@@ -199,5 +190,20 @@
 			<artifactId>struts2-core</artifactId>
 			<version>2.0.6</version>
 		</dependency>
+		<dependency>
+			<groupId>com.googlecode.xmemcached</groupId>
+			<artifactId>xmemcached</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>oro</groupId>
+			<artifactId>oro</artifactId>
+			<version>2.0.8</version>
+		</dependency>
+
+
+		<!-- <dependency> <groupId>com.adobe.blazeds</groupId> <artifactId>blazeds-core</artifactId> 
+			<version>3.2.0.3978</version> </dependency> <dependency> <groupId>com.adobe.blazeds</groupId> 
+			<artifactId>blazeds-common</artifactId> <version>3.2.0.3978</version> </dependency> -->
 	</dependencies>
 </project>

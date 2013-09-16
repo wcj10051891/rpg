@@ -11,7 +11,7 @@
 	<classpathentry kind="lib" path="/jars/lib/commons-logging-1.1.3.jar"/>
 	<classpathentry kind="lib" path="/jars/lib/commons-pool-1.5.4.jar"/>
 	<classpathentry kind="lib" path="/jars/lib/ezmorph-1.0.6.jar"/>
-	<classpathentry kind="lib" path="/jars/lib/json-lib-2.4-jdk15.jar"/>
+	<classpathentry kind="lib" path="/jars/lib/json-lib-2.4-jdk15.jar" sourcepath="C:/Users/E430c/.m2/repository/net/sf/json-lib/json-lib/2.4/json-lib-2.4-jdk15-sources.jar"/>
 	<classpathentry kind="lib" path="/jars/lib/maven-ant-tasks-2.1.3.jar"/>
 	<classpathentry kind="lib" path="/jars/lib/xmemcached-1.4.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dao"/>
