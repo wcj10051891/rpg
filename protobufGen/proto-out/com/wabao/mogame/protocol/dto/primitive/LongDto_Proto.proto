@@ -1,0 +1,4 @@
+package com.wabao.mogame.protocol.dto.primitive;
+message LongDto{
+	optional int64 value=1;
+}

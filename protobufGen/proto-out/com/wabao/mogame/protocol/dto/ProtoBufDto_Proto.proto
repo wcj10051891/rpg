@@ -1,0 +1,5 @@
+package com.wabao.mogame.protocol.dto;
+message ProtoBufDto{
+	optional string typeName=1;
+	optional bytes data=2;
+}

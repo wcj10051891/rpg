@@ -1,0 +1,4 @@
+package com.wabao.mogame.protocol.dto.primitive;
+message IntDto{
+	optional int32 value=1;
+}

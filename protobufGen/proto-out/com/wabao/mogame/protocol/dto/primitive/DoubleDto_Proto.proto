@@ -1,0 +1,4 @@
+package com.wabao.mogame.protocol.dto.primitive;
+message DoubleDto{
+	optional double value=1;
+}

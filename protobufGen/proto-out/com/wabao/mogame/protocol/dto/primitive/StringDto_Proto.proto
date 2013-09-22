@@ -1,0 +1,4 @@
+package com.wabao.mogame.protocol.dto.primitive;
+message StringDto{
+	optional string value=1;
+}

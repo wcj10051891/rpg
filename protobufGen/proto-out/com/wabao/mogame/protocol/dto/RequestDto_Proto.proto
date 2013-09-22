@@ -1,0 +1,6 @@
+package com.wabao.mogame.protocol.dto;
+message RequestDto{
+	optional int32 sn=1;
+	optional string method=2;
+	repeated string params=3;
+}

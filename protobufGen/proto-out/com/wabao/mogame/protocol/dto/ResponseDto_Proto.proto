@@ -1,0 +1,6 @@
+package com.wabao.mogame.protocol.dto;
+import "com/wabao/mogame/protocol/dto/ProtoBufDto_Proto.proto";
+message ResponseDto{
+	optional int32 sn=1;
+	optional com.wabao.mogame.protocol.dto.ProtoBufDto result=2;
+}
