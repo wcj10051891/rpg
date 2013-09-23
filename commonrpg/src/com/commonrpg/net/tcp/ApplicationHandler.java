@@ -43,7 +43,8 @@ public class ApplicationHandler extends SimpleChannelUpstreamHandler {
 	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-		ctx.getChannel().close();
+		e.getCause().printStackTrace();
+		log.error("client error:{}", e.getCause().getMessage());
 	}
 
 	@Override
