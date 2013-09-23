@@ -1,3 +1,6 @@
 package com.wabao.mogame.protocol.dto.player;
+	/**
+字段列表:
+	 */
 message PlayerDto{
 }

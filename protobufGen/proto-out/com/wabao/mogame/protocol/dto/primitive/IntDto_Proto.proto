@@ -1,4 +1,8 @@
 package com.wabao.mogame.protocol.dto.primitive;
+	/**
+字段列表:
+value	null
+	 */
 message IntDto{
 	optional int32 value=1;
 }

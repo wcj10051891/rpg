@@ -1,6 +1,28 @@
 package com.wabao.mogame.protocol.dto;
+	/**
+	 * 服务请求
+	 * @author E430c
+字段列表:
+sn	请求序号
+service	服务类
+method	方法
+params	参数列表:json数组，按照service方法的参数个数及类型一一匹配
+	 */
 message RequestDto{
+	/**
+	 * 请求序号
+	 */
 	optional int32 sn=1;
-	optional string method=2;
-	repeated string params=3;
+	/**
+	 * 服务类
+	 */
+	optional string service=2;
+	/**
+	 * 方法
+	 */
+	optional string method=3;
+	/**
+	 * 参数列表:json数组，按照service方法的参数个数及类型一一匹配
+	 */
+	optional string params=4;
 }

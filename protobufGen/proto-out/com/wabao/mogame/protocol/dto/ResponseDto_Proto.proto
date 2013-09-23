@@ -1,6 +1,13 @@
 package com.wabao.mogame.protocol.dto;
 import "com/wabao/mogame/protocol/dto/ProtoBufDto_Proto.proto";
+	/**
+字段列表:
+sn	null
+isError	null
+result	null
+	 */
 message ResponseDto{
 	optional int32 sn=1;
-	optional com.wabao.mogame.protocol.dto.ProtoBufDto result=2;
+	optional bool isError=2;
+	optional com.wabao.mogame.protocol.dto.ProtoBufDto result=3;
 }

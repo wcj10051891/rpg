@@ -1,4 +1,8 @@
 package com.wabao.mogame.protocol.dto.primitive;
+	/**
+字段列表:
+value	null
+	 */
 message LongDto{
 	optional int64 value=1;
 }
