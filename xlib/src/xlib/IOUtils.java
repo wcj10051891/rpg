@@ -12,7 +12,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.Scanner;
 
-public abstract class IoUtils {
+public abstract class IOUtils {
 	public static String read(String filepath) {
 		StringBuilder result = new StringBuilder();
 		Scanner scan = null;
@@ -46,5 +46,12 @@ public abstract class IoUtils {
 	
 	public static BufferedWriter bufferedWriter(Writer writer) {
 		return new BufferedWriter(writer);
+	}
+	
+	public static void deleteFile(File file) {
+		if(file.isDirectory())
+			for (File f : file.listFiles())
+				deleteFile(f);
+		file.delete();
 	}
 }

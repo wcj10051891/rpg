@@ -1,21 +1,20 @@
 package com.wabao.mogame.net.tcp;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class BroadcastGroup {
 	private String name;
-	private Set<Integer> channelIds;
+	private ConcurrentLinkedQueue<Integer> channelIds;
 
 	public BroadcastGroup(String name) {
 		this.name = name;
-		this.channelIds = new LinkedHashSet<Integer>();
+		this.channelIds = new ConcurrentLinkedQueue<Integer>();
 	}
 
 	public BroadcastGroup(String name, Integer... channelIds) {
 		this.name = name;
-		this.channelIds = new LinkedHashSet<Integer>(Arrays.asList(channelIds));
+		this.channelIds = new ConcurrentLinkedQueue<Integer>();
 	}
 
 	public String getName() {
@@ -30,7 +29,7 @@ public class BroadcastGroup {
 		this.channelIds.remove(channelId);
 	}
 
-	public Set<Integer> getChannelIds() {
+	public Collection<Integer> getChannelIds() {
 		return this.channelIds;
 	}
 

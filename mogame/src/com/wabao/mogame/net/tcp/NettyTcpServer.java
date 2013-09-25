@@ -11,7 +11,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
 import com.wabao.mogame.core.AppConfig;
-import com.wabao.mogame.net.tcp.codec.ProtobufDecoder;
+import com.wabao.mogame.net.tcp.codec.JavaObjectDecoder;
 
 public class NettyTcpServer {
 	public ServerBootstrap server;
@@ -31,8 +31,9 @@ public class NettyTcpServer {
 				@Override
 				public ChannelPipeline getPipeline() throws Exception {
 					ChannelPipeline pipeline = Channels.pipeline();
-					pipeline.addLast("decoder", new ProtobufDecoder());
-					pipeline.addLast("logic", ApplicationHandler.INSTANCE);
+//					pipeline.addLast("decoder", new ProtobufDecoder());
+					pipeline.addLast("decoder", new JavaObjectDecoder());
+					pipeline.addLast("logic", LogicHandler.INSTANCE);
 					return pipeline;
 				}
 			});

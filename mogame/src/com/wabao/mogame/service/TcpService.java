@@ -9,7 +9,7 @@ import com.wabao.mogame.net.tcp.Channels;
 import com.wabao.mogame.net.tcp.Groups;
 import com.wabao.mogame.net.tcp.NettyTcpServer;
 import com.wabao.mogame.net.tcp.codec.Encoder;
-import com.wabao.mogame.net.tcp.codec.ProtobufEncoder;
+import com.wabao.mogame.net.tcp.codec.JavaObjectEncoder;
 
 public class TcpService implements Service {
 	private static final Logger log = LoggerFactory.getLogger(TcpService.class);
@@ -22,7 +22,8 @@ public class TcpService implements Service {
 	public void start() throws Exception {
 		channels = new Channels();
 		groups = new Groups();
-		encoder = new ProtobufEncoder();
+//		encoder = new ProtobufEncoder();
+		encoder = new JavaObjectEncoder();
 		nettyTcpServer = new NettyTcpServer();
 		nettyTcpServer.start();
 	}
@@ -52,12 +53,12 @@ public class TcpService implements Service {
 	
 	public void joinGroup(String groupName, Player player) {
 		groups.join(groupName, player.channelId);
-		log.info("{} join group {}.", player.id, groupName);
+		log.info("{} join group {}, group status:{}", player.id, groupName, groups.get(groupName).getChannelIds());
 	}
 	
 	public void leaveGroup(String groupName, Player player) {
 		groups.leave(groupName, player.channelId);
-		log.info("{} leave group {}.", player.id, groupName);
+		log.info("{} leave group {}, group status:{}", player.id, groupName, groups.get(groupName).getChannelIds());
 	}
 	
 	public void world(Object message) {

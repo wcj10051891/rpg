@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.wabao.mogame.core.AppException;
-import com.wabao.mogame.protocol.dto.RequestDtoProto.RequestDto;
+import com.wabao.mogame.modules.protocol.dto.RequestDtoProto.RequestDto;
 import com.wabao.mogame.util.ProtobufUtils;
 
 public class ProtobufDecoder extends FrameDecoder {

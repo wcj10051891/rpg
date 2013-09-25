@@ -3,9 +3,9 @@ package com.wabao.mogame.util;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import com.google.protobuf.Message.Builder;
-import com.wabao.mogame.protocol.dto.ProtoBufDtoProto.ProtoBufDto;
-import com.wabao.mogame.protocol.dto.RequestDtoProto.RequestDto;
-import com.wabao.mogame.protocol.dto.ResponseDtoProto.ResponseDto;
+import com.wabao.mogame.modules.protocol.dto.ProtoBufDtoProto.ProtoBufDto;
+import com.wabao.mogame.modules.protocol.dto.RequestDtoProto.RequestDto;
+import com.wabao.mogame.modules.protocol.dto.ResponseDtoProto.ResponseDto;
 
 public abstract class ProtobufUtils {
 	

@@ -16,8 +16,9 @@ import org.phprpc.PHPRPC_Error;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import xlib.IOUtils;
+
 import com.wabao.mogame.core.AppConfig;
-import com.wabao.mogame.util.IoUtils;
 
 /**
  * User: kofboy@163.com
@@ -212,7 +213,7 @@ public class RpcClient
     
     public static void main(String[] args) {
     	RpcClient rc = new RpcClient();
-    	System.out.println(rc.callDirect("localhost:8181", "hotswaper", "redefineClass", new Object[]{IoUtils.read("src/com/wabao.mogame/remote/phprpc/Status.java")}));
+    	System.out.println(rc.callDirect("localhost:8181", "hotswaper", "redefineClass", new Object[]{IOUtils.read("src/com/wabao.mogame/remote/phprpc/Status.java")}));
     	System.out.println(rc.callDirect("localhost:8181", "status", "online", null));
 //    	System.out.println(rc.callDirect("localhost:8181", "hotswaper", "addJarFile", new Object[]{"C:/Users/wcj/Desktop/excel2db.jar"}));
 //    	rc.callAsync("localhost:8181", "status", "online", null, new CallBack() {
