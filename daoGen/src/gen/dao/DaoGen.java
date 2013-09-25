@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,11 +45,11 @@ import java.util.Set;
  * @author wangchengjie	wcj10051891@gmail.com
  */
 public class DaoGen {
-	private static Config cfg = new Config("daoGen.cfg");
+	private static Config cfg = new Config("daoGen.properties");
     private static final String packageName = cfg.getString("dao.package.name", "com.cndw.xianhun.persist.dao");
-    private static final String outputPath = cfg.getString("dao.gen.output.file", "../xianhun/src/com/cndw/xianhun/persist/dao/{0}Dao.java");
     private static final String templatePath = cfg.getString("dao.gen.template.file", "src/gen/dao/daoTemplate.vm");
     private static final String shardTemplatePath = cfg.getString("dao.gen.shard.template.file", "src/gen/dao/shardDaoTemplate.vm");
+    private static final String outputPath = cfg.getString("dao.gen.output.dir", "../xianhun/src/com/cndw/xianhun/persist/dao");
     
     // 排除列表，不生成
     private static final Set<String> excludes = new HashSet<String>(Arrays.asList(cfg.getString("dao.gen.excludes").split(",")));
@@ -102,7 +101,7 @@ public class DaoGen {
         ctx.put("tableName", tableName);
         ctx.put("properties", properties);
         ctx.put("classFullName", classFullName);
-        String outPutPath = MessageFormat.format(outputPath, className);
+        String outPutPath = new File(outputPath, className +"Dao.java").getCanonicalPath();
         VelocityRuner.run(ctx, templatePath, outPutPath);
 //        和svn对比
 //        File generated = new File(outPutPath);
@@ -125,8 +124,8 @@ public class DaoGen {
         ctx.put("properties", properties);
         ctx.put("classFullName", classFullName);
 
-        String outPutPath = MessageFormat.format(outputPath, className);
-        VelocityRuner.run(ctx, shardTemplatePath, MessageFormat.format(outputPath, className));
+        String outPutPath = new File(outputPath, className +"Dao.java").getCanonicalPath();
+        VelocityRuner.run(ctx, shardTemplatePath, outPutPath);
 //		和svn对比
 //        File generated = new File(outPutPath);
 //        String svnOldDaoFullClassName = packageName + "." + className + "Dao";

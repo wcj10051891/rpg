@@ -2,16 +2,14 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="lib/log4j-1.2.14.jar" sourcepath="C:/Users/wcj/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14-sources.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.24.jar"/>
-	<classpathentry kind="lib" path="lib/commons-dbcp-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/commons-pool-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/xercesImpl-2.0.2.jar"/>
-	<classpathentry kind="lib" path="lib/xml-apis-1.0.b2.jar"/>
-	<classpathentry kind="lib" path="lib/commons-dbutils-1.5.jar" sourcepath="C:/Users/wcj/.m2/repository/commons-dbutils/commons-dbutils/1.5/commons-dbutils-1.5-sources.jar"/>
-	<classpathentry kind="lib" path="lib/velocity-1.6.4.jar" sourcepath="C:/Users/wangchengjie/.m2/repository/org/apache/velocity/velocity/1.6.4/velocity-1.6.4-sources.jar"/>
-	<classpathentry kind="lib" path="lib/commons-lang-2.5.jar"/>
+	<classpathentry kind="lib" path="lib/commons-dbutils-1.5.jar" sourcepath="C:/Users/E430c/.m2/repository/commons-dbutils/commons-dbutils/1.5/commons-dbutils-1.5-sources.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar"/>
-	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
+	<classpathentry kind="lib" path="lib/bonecp-0.7.1.RELEASE.jar" sourcepath="C:/Users/E430c/.m2/repository/com/jolbox/bonecp/0.7.1.RELEASE/bonecp-0.7.1.RELEASE-sources.jar"/>
+	<classpathentry kind="lib" path="lib/google-collections-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/jcl-over-slf4j-1.7.5.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.7.5.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-log4j12-1.7.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

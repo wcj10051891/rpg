@@ -2,31 +2,41 @@ package com.wcj.dao.core;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.dbutils.QueryRunner;
-
+import com.wcj.dao.core.datasource.BoneCPDataSourceProvider;
+import com.wcj.dao.core.datasource.DataSourceProvider;
 import com.wcj.util.Config;
 
 public class DaoContext {
-	public QueryRunner jdbc;
+	public static final String DataSourceProviderClass = "dataSourceProviderClass";
+	
+	public TransactionalQueryRunner jdbc;
 	public DaoFactory daoFactory;
 
 	public DaoContext(DataSource dataSource) {
-		jdbc = new QueryRunner(dataSource);
-		daoFactory = new DaoFactory(jdbc);
+		this.init(dataSource);
 	}
 	public DaoContext() {
-		jdbc = new QueryRunner(initDataSource());
+		this.init(initDataSource());
+	}
+	
+	private void init(DataSource dataSource) {
+		boolean defaultAutoCommit = false;
+		try {
+			defaultAutoCommit = dataSource.getConnection().getAutoCommit();
+		} catch (Exception e) {
+		}
+		jdbc = new TransactionalQueryRunner(dataSource, defaultAutoCommit);
 		daoFactory = new DaoFactory(jdbc);
 	}
 
 	private DataSource initDataSource() {
 		Config cfg = new Config("jdbc.properties");
-		BasicDataSource datasource = new BasicDataSource();
-		datasource.setDriverClassName(cfg.getString("jdbc.driver"));
-		datasource.setUrl(cfg.getString("jdbc.url"));
-		datasource.setUsername(cfg.getString("jdbc.username"));
-		datasource.setPassword(cfg.getString("jdbc.password"));
-		return datasource;
+		DataSourceProvider provider = null;
+		try {
+			provider = (DataSourceProvider)Class.forName(cfg.getString(DataSourceProviderClass)).getConstructor(Config.class).newInstance(cfg);
+		} catch (Exception e) {
+			provider = new BoneCPDataSourceProvider(cfg);
+		}
+		return provider.getDataSource();
 	}
 }

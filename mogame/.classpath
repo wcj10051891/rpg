@@ -7,7 +7,7 @@
 	<classpathentry kind="lib" path="/xlib/lib/blazeds-core-3.2.0.3978.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-beanutils-1.8.3.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-collections-3.2.1.jar"/>
-	<classpathentry kind="lib" path="/xlib/lib/commons-dbcp-1.4.jar"/>
+	<classpathentry kind="lib" path="/xlib/lib/commons-dbcp-1.4.jar" sourcepath="C:/Users/E430c/.m2/repository/commons-dbcp/commons-dbcp/1.4/commons-dbcp-1.4-sources.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-dbutils-1.5.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-digester-2.1.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-lang-2.6.jar"/>

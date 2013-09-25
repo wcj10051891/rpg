@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  * @author wangchengjie	wcj10051891@gmail.com
  */
 public class EntityGen {
-	private static Config cfg = new Config("daoGen.cfg");
+	private static Config cfg = new Config("daoGen.properties");
     private static final String packageName = cfg.getString("entity.package.name", "com.cndw.xianhun.persist.entity");
     private static final String tplPath = cfg.getString("entity.gen.template.file", "src/gen/entity/entity.vm");
     private static final String outputPath = cfg.getString("entity.gen.output.dir", "../xianhun/src/com/cndw/xianhun/persist/entity");
@@ -53,9 +53,7 @@ public class EntityGen {
                 if(shardingTablePattern.matcher(tableName).find())
                     table.setTableName(tableName.replaceFirst(shardingTablePattern.pattern(), ""));
                 
-                String entityClassFQN = generate(tplPath, table, packageName, outputPath);
-                map.put(entityClassFQN, tableName);
-                System.out.println("entity gen success:" + outputPath + "/" + entityClassFQN);
+                map.put(generate(tplPath, table, packageName, outputPath), tableName);
             }
         }
         tableNameMap.store();
@@ -93,7 +91,9 @@ public class EntityGen {
 		}
 		ctx.put("columnData", columnData);
 		
-		VelocityRuner.run(ctx, tplPath, new File(outputPath, entityName +".java").getAbsolutePath());
+		String filepath = new File(outputPath, entityName +".java").getCanonicalPath();
+		VelocityRuner.run(ctx, tplPath, filepath);
+        System.out.println("entity gen success:" + filepath);
 		return packageName + "." + entityName;
 	}
 	

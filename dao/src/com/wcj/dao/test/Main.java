@@ -29,8 +29,19 @@ public class Main {
 //		log.debug(dao.getPage(page).getData());
 //		log.debug(dao.getPage2(page, Arrays.asList("1", "ff")));
 //		log.debug(dao.getPage3(page, "select * from player where id=:id", 3000001));
-		ActiveDao dao = daoFactory.get(ActiveDao.class);
-		Active a = new Active();
-		dao.insert(a);
+//		ActiveDao dao = daoFactory.get(ActiveDao.class);
+//		Active a = new Active();
+//		dao.insert(a);
+		
+		final CustomerDao customerDao = daoFactory.get(CustomerDao.class);
+		final Customer customer = customerDao.get(1);
+		daoContext.jdbc.doInTransaction(new Runnable() {
+			@Override
+			public void run() {
+				customer.setCustomer_id(0);
+				customerDao.insert(customer);
+				customerDao.insert(customer);
+			}
+		});
 	}
 }

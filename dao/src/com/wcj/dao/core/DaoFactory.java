@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.DbUtils;
-import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -123,29 +122,35 @@ import com.wcj.util.StringUtils;
 	<pre>
 	get @Sql(value="select * from player_item_1 where id=:id")
 	PlayerItem get(@Arg(value="id") Long id, @IdModSharding(tableName="player_item_1")Integer shardArg);</pre>
+	
+	编程式事务支持：
+	daoContext.jdbc.doInTransaction(new Runnable() {
+			@Override
+			public void run() {
+				事务逻辑代码
+			}
+		});
  *	@author wcj
  */
 public class DaoFactory {
-	private static Log logger = LogFactory.getLog(DaoFactory.class);
+	private static final Log logger = LogFactory.getLog(DaoFactory.class);
 	private static final String comma = ",";
 	private static final String argPrefix = ":";
 	private static final String quote = "'";
-
-	private static String dateFormat = "yyyy-MM-dd hh:mm:ss";
-
+	private static final String dateFormat = "yyyy-MM-dd hh:mm:ss";
 	private static final String select = "select";
 	private static final String insert = "insert";
 	private static final String delete = "delete";
 	private static final String update = "update";
 
-	private static Map<Class<?>, BeanHandler<?>> beanHandlers = new ConcurrentHashMap<Class<?>, BeanHandler<?>>();
-	private static Map<Class<?>, BeanListHandler<?>> beanListHandlers = new ConcurrentHashMap<Class<?>, BeanListHandler<?>>();
-	private static MapHandler mapHandler = new MapHandler();
-	private static ColumnListHandler<?> columnListHandler = new ColumnListHandler<Object>();
-	private static MapListHandler mapListHandler = new MapListHandler();
-	private static ScalarHandler<?> scalarHandler = new ScalarHandler<Object>();
-	private static BasicRowProcessor basicRowProcessor = new BasicRowProcessor();
-	private static Map<Class<?>, ShardingStrategy> shardingStrategys = new HashMap<Class<?>, ShardingStrategy>();
+	private static final Map<Class<?>, BeanHandler<?>> beanHandlers = new ConcurrentHashMap<Class<?>, BeanHandler<?>>();
+	private static final Map<Class<?>, BeanListHandler<?>> beanListHandlers = new ConcurrentHashMap<Class<?>, BeanListHandler<?>>();
+	private static final MapHandler mapHandler = new MapHandler();
+	private static final ColumnListHandler<?> columnListHandler = new ColumnListHandler<Object>();
+	private static final MapListHandler mapListHandler = new MapListHandler();
+	private static final ScalarHandler<?> scalarHandler = new ScalarHandler<Object>();
+	private static final BasicRowProcessor basicRowProcessor = new BasicRowProcessor();
+	private static final Map<Class<?>, ShardingStrategy> shardingStrategys = new HashMap<Class<?>, ShardingStrategy>();
 
 	private static final Map<Class<?>, Class<?>> buildInTypes = new HashMap<Class<?>, Class<?>>();
 	static {
@@ -177,11 +182,11 @@ public class DaoFactory {
 		dialects.put( "Oracle10", new Oracle10gDialect());
 	}
 
-	private Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<Class<?>, Object>();
-	private QueryRunner jdbc;
+	private final Map<Class<?>, Object> proxyCache = new ConcurrentHashMap<Class<?>, Object>();
+	private final TransactionalQueryRunner jdbc;
 	private Dialect currentDialect;
 	
-	public DaoFactory(QueryRunner queryRunner) {
+	public DaoFactory(TransactionalQueryRunner queryRunner) {
 		this.jdbc = queryRunner;
 		try {
 			Connection conn = this.jdbc.getDataSource().getConnection();
@@ -363,7 +368,7 @@ public class DaoFactory {
 
 					if (Number.class.isAssignableFrom(c)) {
 						if (isInsert && !isBatchInsert) {
-							Connection conn = jdbc.getDataSource().getConnection();
+							Connection conn = jdbc.getConnection();
 							PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 							try {
 								int effectRowCount = stmt.executeUpdate();
@@ -375,7 +380,7 @@ public class DaoFactory {
 								throw new DaoException("insert sql execute error, sql:" + sql, e);
 							} finally {
 								DbUtils.close(stmt);
-								DbUtils.close(conn);
+								jdbc.close(conn);
 							}
 						} else {
 							return jdbc.update(sql);

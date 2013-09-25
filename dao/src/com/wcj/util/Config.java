@@ -20,7 +20,9 @@ public class Config {
 				in = Config.class.getResourceAsStream("/" + filename);
 				properties.load(in);
 			} catch (Exception ee) {
-				throw new RuntimeException("config file not exists, configuation properties init error: " + e.getMessage() + ". " + ee.getMessage());
+				throw new RuntimeException(
+						"config file not exists, configuation properties init error: "
+								+ e.getMessage() + ". " + ee.getMessage());
 			}
 		} finally {
 			close(in);
@@ -66,5 +68,20 @@ public class Config {
 		if (property == null)
 			return def;
 		return Boolean.valueOf(property);
+	}
+
+	public Long getLong(String key) {
+		return getLong(key, null);
+	}
+
+	public Long getLong(String key, Long def) {
+		String property = properties.getProperty(key);
+		if (property == null)
+			return def;
+		return Long.parseLong(property);
+	}
+
+	public Properties getProperties() {
+		return this.properties;
 	}
 }

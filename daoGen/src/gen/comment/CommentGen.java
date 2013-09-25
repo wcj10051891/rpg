@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class CommentGen
 {
-	private static Config cfg = new Config("daoGen.cfg");
+	private static Config cfg = new Config("daoGen.properties");
 
 	private static final String tplPath = cfg.getString("comment.gen.template.file", "src/com/wcj/gen/comment/comment.vm");
     private static final String outputPath = cfg.getString("comment.gen.output.file", "src/com/wcj/gen/comment/comment.txt");
