@@ -1,11 +1,16 @@
-<project name="xlib" basedir=".">
+<project name="xlib" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 	<property name="src" value="src" />
 	<property name="target" value="target" />
 	<property name="classes" value="${target}/classes" />
-	<property name="jdk.version" value="1.6" />
+	<property name="jdk.version" value="1.7" />
 	<property name="source.encoding" value="UTF-8" />
+
+	<artifact:pom id="pom.this" file="pom.xml" />
+	<artifact:dependencies filesetid="fileset.lib.runtime" pathid="path.lib.runtime" pomrefid="pom.this" usescope="runtime" />
+
 	
 	<path id="classpath.project">
+		<path refid="path.lib.runtime"/>
 		<fileset dir="lib/"/>
 	</path>
 	
@@ -36,18 +41,18 @@
 			</fileset>
 		</jar>
 	</target>
-<!--
+
 	<target name="copy-maven-lib-jar">
-		<delete dir="lib">
-		</delete>
-		<mkdir dir="lib" />
+<!--	
+		<delete dir="lib"/>
+		<mkdir dir="lib" /> 
+-->
 		<copy todir="lib" flatten="true">
 			<fileset refid="fileset.lib.runtime" />
-			This mapper strips off all leading directory information 
 			<mapper type="flatten" />
 		</copy>
 	</target>
-
+<!--
 	<target name="copyto">
 		<scp file="target/${app.name}.jar" todir="root@192.168.14.90:/data/project/server" password="G38pTiJY%u41*8X" trust="true" />
 	</target>

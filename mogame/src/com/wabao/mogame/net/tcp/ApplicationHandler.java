@@ -1,7 +1,5 @@
 package com.wabao.mogame.net.tcp;
 
-import net.sf.json.JSONArray;
-
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -11,6 +9,7 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSONArray;
 import com.wabao.mogame.core.Player;
 import com.wabao.mogame.protocol.dto.RequestDtoProto.RequestDto;
 import com.wabao.mogame.protocol.dto.primitive.StringDtoProto.StringDto;
@@ -53,7 +52,6 @@ public class ApplicationHandler extends SimpleChannelUpstreamHandler {
 	@Override
 	public void messageReceived(final ChannelHandlerContext ctx, final MessageEvent e) throws Exception {
 		Services.threadService.submit(new Runnable() {
-			@SuppressWarnings("unchecked")
 			@Override
 			public void run() {
 //				ChatDto content = (ChatDto)e.getMessage();
@@ -69,7 +67,7 @@ public class ApplicationHandler extends SimpleChannelUpstreamHandler {
 				Object result = null;
 				boolean isError = false;
 				try {
-					result = Services.appService.dispatcher.dispatch(player, service, method, JSONArray.fromObject(request.getParams()));
+					result = Services.appService.dispatcher.dispatch(player, service, method, JSONArray.parseArray(request.getParams()));
 				} catch (Exception ex) {
 					isError = true;
 					result = StringDto.newBuilder().setValue(ex.toString()).build();

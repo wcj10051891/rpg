@@ -2,25 +2,18 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="/xlib/lib/backport-util-concurrent-3.1.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/blazeds-common-3.2.0.3978.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/blazeds-core-3.2.0.3978.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-beanutils-1.8.3.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-collections-3.2.1.jar"/>
-	<classpathentry kind="lib" path="/xlib/lib/commons-dbcp-1.4.jar" sourcepath="C:/Users/E430c/.m2/repository/commons-dbcp/commons-dbcp/1.4/commons-dbcp-1.4-sources.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-dbutils-1.5.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-digester-2.1.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/commons-lang-2.6.jar"/>
-	<classpathentry kind="lib" path="/xlib/lib/commons-pool-1.5.4.jar"/>
-	<classpathentry kind="lib" path="/xlib/lib/ezmorph-1.0.6.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/InstrumentAgent.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/javassist-3.18.0-GA.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/jcl-over-slf4j-1.7.5.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/joda-time-2.3.jar"/>
-	<classpathentry kind="lib" path="/xlib/lib/json-lib-2.4-jdk15.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/log4j-1.2.17.jar"/>
-	<classpathentry kind="lib" path="/xlib/lib/mydao.jar"/>
-	<classpathentry kind="lib" path="/xlib/lib/mysql-connector-java-5.1.24.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/phprpc_privatekey.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/protobuf-java-2.5.0.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/quartz-1.5.2.jar"/>
@@ -28,8 +21,10 @@
 	<classpathentry kind="lib" path="/xlib/lib/slf4j-api-1.7.5.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/slf4j-log4j12-1.7.5.jar"/>
 	<classpathentry kind="lib" path="/xlib/lib/tomcat-util.jar"/>
-	<classpathentry kind="lib" path="/xlib/lib/xnetty.jar"/>
+	<classpathentry kind="lib" path="/xlib/lib/xnetty.jar" sourcepath="/xnetty"/>
 	<classpathentry kind="lib" path="/xlib/lib/xtools.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/xlib"/>
+	<classpathentry kind="lib" path="/xlib/lib/xdao.jar"/>
+	<classpathentry kind="lib" path="/xlib/lib/xlib.jar"/>
+	<classpathentry kind="lib" path="/xlib/lib/fastjson-1.1.36.jar" sourcepath="C:/Users/E430c/.m2/repository/com/alibaba/fastjson/1.1.36/fastjson-1.1.36-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
